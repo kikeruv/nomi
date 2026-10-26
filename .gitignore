@@ -1,0 +1,13 @@
+# Credenciales: nunca al repo
+.env
+.aws/
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Sistema
+.DS_Store
