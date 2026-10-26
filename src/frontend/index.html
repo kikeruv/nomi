@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nomi · Recetas y calorías por fotos</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <!-- Barra de navegación -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="index.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="#como-funciona">Cómo funciona</a></li>
+            <li><a class="enlace-menu" href="#recetas">Recetas</a></li>
+        </ul>
+        <div class="grupo-acceso">
+            <a class="boton boton-secundario boton-chico" href="login.html">Iniciar sesión</a>
+            <a class="boton boton-principal boton-chico" href="crear_cuenta.html">Crear cuenta</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+    <!-- Portada -->
+        <section class="portada">
+            <div>
+                <span class="etiqueta">Recetas y calorías por fotos</span>
+                <h1 class="titulo-portada">Toma una foto. <em>Conoce</em> tus calorías.</h1>
+                <p class="texto-intro">
+                Pruébalo ahora, sin cuenta: sube una foto de tu comida y Nomi te dice
+                qué platillo es y cuántas calorías tiene.
+                </p>
+                <div class="grupo-botones">
+                <a class="boton boton-principal" href="crear-cuenta.html">Subir foto</a>
+                <a class="boton boton-secundario" href="#como-funciona">Ver cómo funciona</a>
+                </div>
+            </div>
+
+    <!-- Prueba gratis (ejemplo fijo; el análisis real es de la entrega final) -->
+            <div class="caja-prueba">
+                <span class="etiqueta">Prueba gratis</span>
+                <div class="zona-foto">
+                    <div class="plato"><i></i></div>
+                    <div class="recuadro-deteccion"><span>bowl · 94%</span></div>
+                </div>
+                <div class="resultado">
+                <div>
+                    <span class="etiqueta">Detectado</span>
+                    <div class="nombre-platillo">Bowl de pollo y arroz</div>
+                </div>
+                <div class="calorias-grande">540<span> kcal</span></div>
+                </div>
+                <div class="macros">
+                    <span class="chip">32 g proteína</span>
+                    <span class="chip">58 g carbs</span>
+                    <span class="chip">18 g grasa</span>
+                </div>
+                <div class="aviso">
+                    <span>Crea tu cuenta para guardarlo en tu historial.</span>
+                    <a href="crear-cuenta.html">Crear cuenta →</a>
+                </div>
+            </div>
+        </section>
+
+    <!-- Cómo funciona -->
+        <section class="seccion" id="como-funciona">
+            <h2 class="titulo-seccion">De la foto a tu historial en segundos</h2>
+            <div class="cuadricula-3">
+                <div class="tarjeta">
+                    <div class="numero-paso">01</div>
+                    <h3>Toma la foto</h3>
+                    <p>Desde tu celular o tu computadora. La foto se guarda de forma segura en la nube.</p>
+                </div>
+                <div class="tarjeta">
+                    <div class="numero-paso">02</div>
+                    <h3>Nomi la analiza</h3>
+                    <p>Reconoce el platillo y calcula calorías, proteína, carbohidratos y grasa.</p>
+                </div>
+                <div class="tarjeta">
+                    <div class="numero-paso">03</div>
+                    <h3>Se registra sola</h3>
+                    <p>Con tu cuenta, la comida queda en tu historial y ves cuánto te queda de tu meta del día.</p>
+                </div>
+            </div>
+        </section>
+
+    <!-- Recetas de ejemplo -->
+        <section class="seccion" id="recetas">
+            <h2 class="titulo-seccion">Ideas para tu próxima comida</h2>
+            <div class="cuadricula-3">
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Tacos de pescado</h3>
+                    <p>20 min · 4 porciones</p>
+                    <p><span class="kcal">380 kcal</span></p>
+                </div>
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Ensalada de quinoa</h3>
+                    <p>15 min · 2 porciones</p>
+                    <p><span class="kcal">310 kcal</span></p>
+                </div>
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Pasta con verduras</h3>
+                    <p>25 min · 3 porciones</p>
+                    <p><span class="kcal">460 kcal</span></p>
+                </div>
+            </div>
+        </section>
+
+    <!-- Llamado final -->
+        <section class="bloque-final">
+            <span class="etiqueta">Empieza hoy</span>
+            <h2 class="titulo-seccion">Lleva el control de lo que comes</h2>
+            <p>Crea tu cuenta, define tu meta diaria de calorías y registra cada comida con una foto.</p>
+            <div class="grupo-botones">
+                <a class="boton boton-principal" href="crear_cuenta.html">Crear cuenta</a>
+                <a class="boton boton-secundario" href="login.html">Iniciar sesión</a>
+            </div>
+        </section>
+
+    <!-- Pie de página -->
+        <footer class="pie-pagina">
+            <a class="logo" href="index.html">nomi<span>.</span></a>
+            <span>Proyecto final · Desarrollo en la Nube · ITESO</span>
+        </footer>
+    </main>
+</body>
+</html>
