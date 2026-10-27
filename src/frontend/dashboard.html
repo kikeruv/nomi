@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hoy · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <!-- Barra de navegación (con sesión) -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="dashboard.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="dashboard.html" aria-current="page">Hoy</a></li>
+            <li><a class="enlace-menu" href="historial.html">Historial</a></li>
+            <li><a class="enlace-menu" href="recetas.html">Recetas</a></li>
+        </ul>
+        <div class="grupo-acceso">
+            <a class="boton boton-principal boton-chico" href="registrar_comida.html">Registrar comida</a>
+            <a class="avatar" href="perfil.html" title="Perfil" style="text-decoration: none">A</a>
+        </div>
+    </nav>
+
+    <main class="contenedor contenido-pagina">
+
+        <!-- Saludo -->
+        <span class="etiqueta">Domingo 25 de octubre</span>
+        <h1 class="titulo-seccion">Hola, Ana</h1>
+
+        <!-- Presupuesto del día + registrar comida -->
+        <div class="cuadricula-resumen">
+            <div class="tarjeta">
+                <div class="encabezado-pagina">
+                    <h3>Presupuesto de hoy</h3>
+                    <span class="etiqueta">Meta 2,000 kcal</span>
+                </div>
+                <div class="numero-presupuesto">830 <span>/ 2,000 kcal</span></div>
+                <div class="barra-progreso"><i style="width: 42%"></i></div>
+                <p>Te quedan <span class="kcal">1,170 kcal</span> para hoy.</p>
+            </div>
+
+            <div class="caja-prueba">
+                <span class="etiqueta">Registrar comida</span>
+                <div class="zona-foto zona-foto-vacia">
+                    <div class="icono-subir">+</div>
+                    <div>Anota lo que comiste</div>
+                    <a class="boton boton-principal boton-chico" href="registrar_comida.html">Registrar comida</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial corto -->
+        <section class="seccion" style="margin-top: var(--espacio-seccion)">
+            <span class="etiqueta">Historial</span>
+            <h2 class="titulo-seccion">Tus calorías, de un vistazo</h2>
+
+            <div class="cuadricula-resumen">
+                <div class="tarjeta">
+                    <div class="encabezado-pagina">
+                        <h3>Esta semana</h3>
+                        <span class="etiqueta" style="color: var(--color-aviso)">Meta 2,000 kcal</span>
+                    </div>
+                    <svg class="grafica" viewBox="0 0 520 220" width="100%">
+                        <line class="linea-meta" x1="0" x2="520" y1="40" y2="40"/>
+                        <rect class="barra-grafica" x="10" y="64" width="48" height="126" rx="4"/>
+                        <rect class="barra-grafica" x="84" y="52" width="48" height="138" rx="4"/>
+                        <rect class="barra-grafica" x="158" y="80" width="48" height="110" rx="4"/>
+                        <rect class="barra-grafica" x="232" y="30" width="48" height="160" rx="4"/>
+                        <rect class="barra-grafica" x="306" y="70" width="48" height="120" rx="4"/>
+                        <rect class="barra-grafica" x="380" y="58" width="48" height="132" rx="4"/>
+                        <rect class="barra-hoy" x="454" y="120" width="48" height="70" rx="4"/>
+                        <text x="34" y="212" text-anchor="middle">L</text>
+                        <text x="108" y="212" text-anchor="middle">M</text>
+                        <text x="182" y="212" text-anchor="middle">M</text>
+                        <text x="256" y="212" text-anchor="middle">J</text>
+                        <text x="330" y="212" text-anchor="middle">V</text>
+                        <text x="404" y="212" text-anchor="middle">S</text>
+                        <text x="478" y="212" text-anchor="middle">Hoy</text>
+                    </svg>
+                </div>
+
+                <div class="tarjeta">
+                    <div class="encabezado-pagina">
+                        <h3>Hoy</h3>
+                        <span class="kcal">830 kcal</span>
+                    </div>
+                    <div class="fila-comida">
+                        <div>Avena con plátano<small>09:00</small></div>
+                        <span class="kcal">290</span>
+                    </div>
+                    <div class="fila-comida">
+                        <div>Tacos de pollo<small>14:15</small></div>
+                        <span class="kcal">540</span>
+                    </div>
+                    <p><a class="enlace" href="historial.html">Ver historial completo →</a></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recetas sugeridas -->
+        <section class="seccion">
+            <div class="encabezado-pagina">
+                <div>
+                    <span class="etiqueta">Recetas</span>
+                    <h2 class="titulo-seccion">Te quedan 1,170 kcal: prueba esto</h2>
+                </div>
+                <a class="boton boton-secundario boton-chico" href="recetas.html">Ver todas</a>
+            </div>
+
+            <div class="cuadricula-3">
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Tacos de pescado</h3>
+                    <p>20 min · 4 porciones</p>
+                    <p><span class="kcal">380 kcal</span> <span class="chip chip-aviso">Nuevo</span></p>
+                </div>
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Ensalada de quinoa</h3>
+                    <p>15 min · 2 porciones</p>
+                    <p><span class="kcal">310 kcal</span></p>
+                </div>
+                <div class="tarjeta">
+                    <div class="imagen-receta"><i></i></div>
+                    <h3>Pasta con verduras</h3>
+                    <p>25 min · 3 porciones</p>
+                    <p><span class="kcal">460 kcal</span></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

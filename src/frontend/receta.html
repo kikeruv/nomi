@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Receta · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <!-- Barra de navegación (con sesión) -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="dashboard.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="dashboard.html">Hoy</a></li>
+            <li><a class="enlace-menu" href="historial.html">Historial</a></li>
+            <li><a class="enlace-menu" href="recetas.html" aria-current="page">Recetas</a></li>
+        </ul>
+        <div class="grupo-acceso">
+            <a class="boton boton-principal boton-chico" href="registrar_comida.html">Registrar comida</a>
+            <a class="avatar" href="perfil.html" title="Perfil" style="text-decoration: none">A</a>
+        </div>
+    </nav>
+
+    <main class="contenedor contenido-pagina">
+
+        <a class="enlace" href="recetas.html" style="font-size: 14px">← Recetas</a>
+
+        <!-- Si no existe la receta -->
+        <div class="mensaje mensaje-error" id="no-encontrada" hidden>
+            No encontramos esa receta. <a class="enlace" href="recetas.html">Ver todas las recetas</a>
+        </div>
+
+        <div id="contenido-receta">
+
+            <!-- Imagen + datos principales -->
+            <div class="dos-columnas">
+                <div class="imagen-principal"><i></i></div>
+
+                <div>
+                    <span class="chip" id="categoria"></span>
+                    <h1 class="titulo-seccion" id="titulo" style="margin-top: var(--espacio-medio)"></h1>
+                    <p class="texto-intro" id="descripcion"></p>
+
+                    <div class="fila-macros">
+                        <div>
+                            <span class="etiqueta">Kcal</span>
+                            <div class="dato" id="calorias" style="color: var(--color-verde-texto)"></div>
+                        </div>
+                        <div>
+                            <span class="etiqueta">Tiempo</span>
+                            <div class="dato" id="tiempo"></div>
+                        </div>
+                        <div>
+                            <span class="etiqueta">Porciones</span>
+                            <div class="dato" id="porciones"></div>
+                        </div>
+                    </div>
+
+                    <div class="grupo-botones">
+                        <a class="boton boton-principal" href="registrar-comida.html">Registrar como comida</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preparación + ingredientes -->
+            <div class="dos-columnas" style="margin-top: 48px">
+                <div>
+                    <span class="etiqueta">Preparación</span>
+                    <ol class="lista-pasos" id="pasos"></ol>
+                </div>
+
+                <div class="tarjeta">
+                    <h3>Ingredientes</h3>
+                    <ul class="lista-ingredientes" id="ingredientes"></ul>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/recetas-datos.js"></script>
+    <script src="js/receta.js"></script>
+</body>
+</html>

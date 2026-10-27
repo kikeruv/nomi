@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Perfil · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <!-- Barra de navegación (con sesión) -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="dashboard.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="dashboard.html">Hoy</a></li>
+            <li><a class="enlace-menu" href="historial.html">Historial</a></li>
+            <li><a class="enlace-menu" href="recetas.html">Recetas</a></li>
+        </ul>
+        <div class="grupo-acceso">
+            <a class="boton boton-principal boton-chico" href="registrar-comida.html">Registrar comida</a>
+            <a class="avatar" href="perfil.html" title="Perfil" aria-current="page" style="text-decoration: none">A</a>
+        </div>
+    </nav>
+
+    <main class="contenedor contenido-pagina" style="max-width: 880px">
+
+        <!-- Encabezado con avatar -->
+        <div style="display: flex; align-items: center; gap: var(--espacio-medio)">
+            <div class="avatar" id="avatar-grande" style="width: 64px; height: 64px; font-size: 24px">A</div>
+            <div>
+                <h1 class="titulo-seccion" id="nombre-titulo" style="margin: 0">Ana López</h1>
+                <span class="etiqueta" id="correo-titulo" style="text-transform: none; letter-spacing: 0">ana@ejemplo.com</span>
+            </div>
+        </div>
+
+        <form id="formulario-perfil" novalidate>
+
+            <!-- Metas -->
+            <div class="tarjeta" style="margin-top: var(--espacio-lateral)">
+                <span class="etiqueta">Metas</span>
+                <h3 style="margin-top: var(--espacio-chico)">Tu presupuesto</h3>
+                <div class="fila-campos" style="margin-top: var(--espacio-medio)">
+                    <div class="campo" id="campo-meta">
+                        <label for="meta">Meta diaria de calorías</label>
+                        <input class="entrada" id="meta" type="number" min="1" value="2000" inputmode="numeric">
+                        <small data-ayuda="En kcal por día.">En kcal por día.</small>
+                    </div>
+                    <div class="campo" id="campo-presupuesto">
+                        <label for="presupuesto">Presupuesto semanal</label>
+                        <input class="entrada" id="presupuesto" type="number" min="1" value="800" inputmode="numeric">
+                        <small data-ayuda="En pesos, para tu menú y lista de compras.">En pesos, para tu menú y lista de compras.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos personales -->
+            <div class="tarjeta" style="margin-top: var(--espacio-medio)">
+                <span class="etiqueta">Cuenta</span>
+                <h3 style="margin-top: var(--espacio-chico)">Datos personales</h3>
+                <div class="fila-campos" style="margin-top: var(--espacio-medio)">
+                    <div class="campo" id="campo-nombre">
+                        <label for="nombre">Nombre</label>
+                        <input class="entrada" id="nombre" value="Ana López" autocomplete="name">
+                        <small></small>
+                    </div>
+                    <div class="campo" id="campo-edad">
+                        <label for="edad">Edad</label>
+                        <input class="entrada" id="edad" type="number" min="1" value="21" inputmode="numeric">
+                        <small></small>
+                    </div>
+                </div>
+                <div class="campo" id="campo-correo" style="margin-top: var(--espacio-medio)">
+                    <label for="correo">Correo</label>
+                    <input class="entrada" id="correo" type="email" value="ana@ejemplo.com" autocomplete="email">
+                    <small></small>
+                </div>
+            </div>
+
+            <div class="mensaje" id="resultado" hidden></div>
+
+            <!-- Botones -->
+            <div class="encabezado-pagina" style="margin-top: var(--espacio-tarjeta)">
+                <a class="boton boton-secundario" href="index.html">Cerrar sesión</a>
+                <button class="boton boton-principal" type="submit">Guardar cambios</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script src="js/perfil.js"></script>
+</body>
+</html>
