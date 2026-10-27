@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Iniciar sesión · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+    <div class="pantalla-acceso">
+
+    <!-- Lado izquierdo: mensaje de marca -->
+    <div class="acceso-lado">
+        <a class="logo" href="index.html">nomi<span>.</span></a>
+        <div>
+            <h2 class="titulo-acceso">Toma una foto. <em>Conoce</em> tus calorías.</h2>
+            <p class="texto-intro">Registra cada comida con una foto y ve cuánto te queda de tu meta del día.</p>
+        </div>
+        <span class="etiqueta">Proyecto final · Desarrollo en la Nube · ITESO</span>
+    </div>
+
+    <!-- Lado derecho: formulario -->
+    <form class="acceso-formulario" id="formulario-acceso" novalidate>
+        <span class="etiqueta">Iniciar sesión</span>
+        <h1 class="titulo-seccion">Hola de nuevo</h1>
+
+        <div class="campo" id="campo-correo">
+            <label for="correo">Correo</label>
+            <input class="entrada" id="correo" type="email" placeholder="tu@correo.com" autocomplete="email">
+            <small></small>
+        </div>
+
+        <div class="campo" id="campo-contrasena">
+            <label for="contrasena">Contraseña</label>
+            <input class="entrada" id="contrasena" type="password" autocomplete="current-password">
+            <small></small>
+        </div>
+
+        <a class="enlace enlace-derecha" href="#">¿Olvidaste tu contraseña?</a>
+
+        <button class="boton boton-principal boton-completo" type="submit">Iniciar sesión</button>
+
+        <div class="separador">o</div>
+
+        <button class="boton boton-secundario boton-completo" type="button">Continuar con Google</button>
+
+        <p class="texto-centro">¿No tienes cuenta? <a class="enlace" href="crear_cuenta.html">Crear cuenta</a></p>
+    </form>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

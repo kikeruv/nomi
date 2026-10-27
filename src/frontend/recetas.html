@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recetas · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <!-- Barra de navegación (con sesión) -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="dashboard.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="dashboard.html">Hoy</a></li>
+            <li><a class="enlace-menu" href="historial.html">Historial</a></li>
+            <li><a class="enlace-menu" href="recetas.html" aria-current="page">Recetas</a></li>
+        </ul>
+        <div class="grupo-acceso">
+            <a class="boton boton-principal boton-chico" href="registrar_comida.html">Registrar comida</a>
+            <a class="avatar" href="perfil.html" title="Perfil" style="text-decoration: none">A</a>
+        </div>
+    </nav>
+
+    <main class="contenedor contenido-pagina">
+
+        <!-- Encabezado con buscador -->
+        <div class="encabezado-pagina">
+            <div>
+                <span class="etiqueta">Recetas</span>
+                <h1 class="titulo-seccion">Encuentra tu próxima comida</h1>
+            </div>
+            <input class="entrada" id="buscador" style="max-width: 320px" placeholder="Buscar receta o ingrediente">
+        </div>
+
+        <!-- Filtros por categoría -->
+        <div class="filtros" style="margin-top: var(--espacio-tarjeta)">
+            <button class="filtro" type="button" data-categoria="todas" aria-pressed="true">Todas</button>
+            <button class="filtro" type="button" data-categoria="desayuno" aria-pressed="false">Desayuno</button>
+            <button class="filtro" type="button" data-categoria="comida" aria-pressed="false">Comida</button>
+            <button class="filtro" type="button" data-categoria="cena" aria-pressed="false">Cena</button>
+        </div>
+
+        <!-- Aviso de calorías restantes -->
+        <div class="aviso" style="margin-top: var(--espacio-tarjeta)">
+            <span>Te quedan <span class="kcal">1,170 kcal</span> hoy.</span>
+            <a href="#" id="solo-caben">Ver solo las que caben →</a>
+        </div>
+
+        <!-- Recetas -->
+        <div class="cuadricula-4" id="lista-recetas" style="margin-top: var(--espacio-tarjeta)"></div>
+
+    </main>
+
+    <script src="js/recetas-datos.js"></script>
+    <script src="js/recetas.js"></script>
+</body>
+</html>
