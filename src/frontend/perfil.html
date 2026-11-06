@@ -6,6 +6,7 @@
     <title>Perfil · Nomi</title>
     <link rel="stylesheet" href="css/tokens.css">
     <link rel="stylesheet" href="css/estilos.css">
+    <script src="js/tema.js"></script>
 </head>
 <body>
 
@@ -13,81 +14,137 @@
     <nav class="barra-navegacion">
         <a class="logo" href="dashboard.html">nomi<span>.</span></a>
         <ul>
-            <li><a class="enlace-menu" href="dashboard.html">Hoy</a></li>
-            <li><a class="enlace-menu" href="historial.html">Historial</a></li>
+            <li><a class="enlace-menu" href="dashboard.html">Mi semana</a></li>
+            <li><a class="enlace-menu" href="menu.html">Menú</a></li>
             <li><a class="enlace-menu" href="recetas.html">Recetas</a></li>
         </ul>
-        <div class="grupo-acceso">
-            <a class="boton boton-principal boton-chico" href="registrar-comida.html">Registrar comida</a>
-            <a class="avatar" href="perfil.html" title="Perfil" aria-current="page" style="text-decoration: none">A</a>
+        <a class="boton boton-principal boton-chico" href="escanear_refri.html">Escanear refri</a>
+        <div class="grupo-usuario">
+            <button class="boton-tema" id="boton-tema" type="button" aria-label="Cambiar entre modo claro y oscuro">
+                <svg class="icono-sol" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                <svg class="icono-luna" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+            </button>
+            <!-- La inicial la pone el JS con el nombre del usuario -->
+            <a class="avatar" id="avatar" href="perfil.html" title="Perfil" style="text-decoration: none" aria-current="page"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
         </div>
     </nav>
 
+    <!-- js/perfil.js llena el formulario con GET /usuarios/{id} y guarda con PUT -->
     <main class="contenedor contenido-pagina" style="max-width: 880px">
 
-        <!-- Encabezado con avatar -->
         <div style="display: flex; align-items: center; gap: var(--espacio-medio)">
-            <div class="avatar" id="avatar-grande" style="width: 64px; height: 64px; font-size: 24px">A</div>
+            <div class="avatar" id="avatar-grande" style="width: 64px; height: 64px; font-size: 24px"></div>
             <div>
-                <h1 class="titulo-seccion" id="nombre-titulo" style="margin: 0">Ana López</h1>
-                <span class="etiqueta" id="correo-titulo" style="text-transform: none; letter-spacing: 0">ana@ejemplo.com</span>
+                <h1 class="titulo-seccion" id="nombre-titulo" style="margin: 0"></h1>
+                <span style="color: var(--color-texto-suave); font-size: 14px" id="correo-titulo"></span>
             </div>
         </div>
 
+        <!-- Los ids son los nombres de la tabla Usuarios -->
         <form id="formulario-perfil" novalidate>
 
-            <!-- Metas -->
             <div class="tarjeta" style="margin-top: var(--espacio-lateral)">
-                <span class="etiqueta">Metas</span>
-                <h3 style="margin-top: var(--espacio-chico)">Tu presupuesto</h3>
+                <span class="etiqueta">Tu cuenta</span>
+                <h3 style="margin-top: var(--espacio-chico)">Datos</h3>
                 <div class="fila-campos" style="margin-top: var(--espacio-medio)">
-                    <div class="campo" id="campo-meta">
-                        <label for="meta">Meta diaria de calorías</label>
-                        <input class="entrada" id="meta" type="number" min="1" value="2000" inputmode="numeric">
-                        <small data-ayuda="En kcal por día.">En kcal por día.</small>
+                    <div class="campo" id="campo-nombre">
+                        <label for="nombre">Nombre</label>
+                        <input class="entrada" id="nombre" autocomplete="name">
+                        <small></small>
                     </div>
-                    <div class="campo" id="campo-presupuesto">
-                        <label for="presupuesto">Presupuesto semanal</label>
-                        <input class="entrada" id="presupuesto" type="number" min="1" value="800" inputmode="numeric">
-                        <small data-ayuda="En pesos, para tu menú y lista de compras.">En pesos, para tu menú y lista de compras.</small>
+                    <div class="campo" id="campo-correo">
+                        <label for="correo">Correo</label>
+                        <input class="entrada" id="correo" type="email" autocomplete="email">
+                        <small></small>
                     </div>
                 </div>
             </div>
 
-            <!-- Datos personales -->
             <div class="tarjeta" style="margin-top: var(--espacio-medio)">
-                <span class="etiqueta">Cuenta</span>
-                <h3 style="margin-top: var(--espacio-chico)">Datos personales</h3>
+                <span class="etiqueta">Tu menú</span>
+                <h3 style="margin-top: var(--espacio-chico)">Cómo armamos tu semana</h3>
                 <div class="fila-campos" style="margin-top: var(--espacio-medio)">
-                    <div class="campo" id="campo-nombre">
-                        <label for="nombre">Nombre</label>
-                        <input class="entrada" id="nombre" value="Ana López" autocomplete="name">
+                    <div class="campo" id="campo-personas">
+                        <label for="personas">Personas</label>
+                        <input class="entrada" id="personas" type="number" min="1" inputmode="numeric">
                         <small></small>
                     </div>
-                    <div class="campo" id="campo-edad">
-                        <label for="edad">Edad</label>
-                        <input class="entrada" id="edad" type="number" min="1" value="21" inputmode="numeric">
+                    <div class="campo" id="campo-comidas_por_dia">
+                        <label for="comidas_por_dia">Comidas por día</label>
+                        <select class="entrada" id="comidas_por_dia">
+                            <option value="1">1 comida</option>
+                            <option value="2">2 comidas</option>
+                            <option value="3">3 (desayuno, comida y cena)</option>
+                        </select>
+                        <small></small>
+                    </div>
+                    <div class="campo" id="campo-dia_escaneo">
+                        <label for="dia_escaneo">Día de escanear tu refri</label>
+                        <select class="entrada" id="dia_escaneo">
+                            <option value="lunes">Lunes</option>
+                            <option value="martes">Martes</option>
+                            <option value="miercoles">Miércoles</option>
+                            <option value="jueves">Jueves</option>
+                            <option value="viernes">Viernes</option>
+                            <option value="sabado">Sábado</option>
+                            <option value="domingo">Domingo</option>
+                        </select>
+                        <small></small>
+                    </div>
+                    <div class="campo" id="campo-tiempo_max_min">
+                        <label for="tiempo_max_min">Tiempo máximo por comida (min)</label>
+                        <input class="entrada" id="tiempo_max_min" type="number" min="5" step="5" inputmode="numeric">
+                        <small></small>
+                    </div>
+                    <div class="campo" id="campo-meta">
+                        <label for="meta">Meta diaria de calorías</label>
+                        <input class="entrada" id="meta" type="number" min="1" placeholder="kcal" inputmode="numeric">
+                        <small data-ayuda="Opcional. Si la dejas vacía, solo verás las kcal sin la barra.">Opcional. Si la dejas vacía, solo verás las kcal sin la barra.</small>
+                    </div>
+                    <div class="campo" id="campo-meta_proteina">
+                        <label for="meta_proteina">Meta de proteína (g)</label>
+                        <input class="entrada" id="meta_proteina" type="number" min="1" inputmode="numeric">
                         <small></small>
                     </div>
                 </div>
-                <div class="campo" id="campo-correo" style="margin-top: var(--espacio-medio)">
-                    <label for="correo">Correo</label>
-                    <input class="entrada" id="correo" type="email" value="ana@ejemplo.com" autocomplete="email">
-                    <small></small>
+            </div>
+
+            <div class="tarjeta" style="margin-top: var(--espacio-medio)">
+                <span class="etiqueta">Apariencia</span>
+                <h3 style="margin-top: var(--espacio-chico)">Tema de la app</h3>
+                <!-- data-tema es lo que recibe elegirTema() de js/tema.js -->
+                <div class="selector" id="selector-tema" role="radiogroup" style="margin-top: var(--espacio-medio)">
+                    <button type="button" role="radio" data-tema="auto" aria-checked="false">Automático</button>
+                    <button type="button" role="radio" data-tema="dark" aria-checked="false">Oscuro</button>
+                    <button type="button" role="radio" data-tema="light" aria-checked="false">Claro</button>
+                </div>
+                <p>Automático usa el tema de tu celular o computadora. También puedes cambiarlo con el botón de sol y luna en la barra de arriba.</p>
+            </div>
+
+            <div class="tarjeta" style="margin-top: var(--espacio-medio)">
+                <span class="etiqueta">Preferencias</span>
+                <h3 style="margin-top: var(--espacio-chico)">Qué no quieres en tu menú</h3>
+                <!-- value = lo que se guarda en la lista "preferencias" de Usuarios -->
+                <div id="preferencias" style="margin-top: var(--espacio-chico)">
+                    <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="vegetariano"> Vegetariano</label></div>
+                    <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="sin_cerdo"> Sin carne de cerdo</label></div>
+                    <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="rapidas"> Comidas rápidas (menos de 30 min)</label></div>
+                    <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="sin_mariscos"> Sin mariscos</label></div>
                 </div>
             </div>
 
             <div class="mensaje" id="resultado" hidden></div>
 
-            <!-- Botones -->
             <div class="encabezado-pagina" style="margin-top: var(--espacio-tarjeta)">
                 <a class="boton boton-secundario" href="index.html">Cerrar sesión</a>
                 <button class="boton boton-principal" type="submit">Guardar cambios</button>
             </div>
-
         </form>
     </main>
 
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/datos_ejemplo.js"></script>
     <script src="js/perfil.js"></script>
 </body>
 </html>

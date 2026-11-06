@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Menú · Nomi</title>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="js/tema.js"></script>
+</head>
+<body>
+
+    <!-- Barra de navegación (con sesión) -->
+    <nav class="barra-navegacion">
+        <a class="logo" href="dashboard.html">nomi<span>.</span></a>
+        <ul>
+            <li><a class="enlace-menu" href="dashboard.html">Mi semana</a></li>
+            <li><a class="enlace-menu" href="menu.html" aria-current="page">Menú</a></li>
+            <li><a class="enlace-menu" href="recetas.html">Recetas</a></li>
+        </ul>
+        <a class="boton boton-principal boton-chico" href="escanear_refri.html">Escanear refri</a>
+        <div class="grupo-usuario">
+            <button class="boton-tema" id="boton-tema" type="button" aria-label="Cambiar entre modo claro y oscuro">
+                <svg class="icono-sol" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                <svg class="icono-luna" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+            </button>
+            <!-- La inicial la pone el JS con el nombre del usuario -->
+            <a class="avatar" id="avatar" href="perfil.html" title="Perfil" style="text-decoration: none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+        </div>
+    </nav>
+
+    <!-- Todo lo que dice "—" lo llena js/menu.js con GET /menus/{usuario_id}/{semana} -->
+    <main class="contenedor contenido-pagina">
+
+        <div class="encabezado-pagina">
+            <div>
+                <span class="etiqueta" id="rango-semana">Menú</span>
+                <h1 class="titulo-seccion">Tu menú de la semana</h1>
+            </div>
+            <a class="boton boton-secundario boton-chico" href="escanear_refri.html">Generar otro</a>
+        </div>
+
+        <!-- Resumen -->
+        <div class="cuadricula-4">
+            <div class="tarjeta">
+                <span class="etiqueta">Meta diaria</span>
+                <div class="dato"><span id="meta-diaria">—</span><small> kcal</small></div>
+            </div>
+            <div class="tarjeta">
+                <span class="etiqueta">Promedio del menú</span>
+                <div class="dato" style="color: var(--color-verde-texto)"><span id="promedio">—</span><small> kcal / día</small></div>
+            </div>
+            <div class="tarjeta">
+                <span class="etiqueta">Solo con tu refri</span>
+                <div class="dato"><span id="solo-refri">—</span><small id="total-comidas"></small></div>
+            </div>
+            <div class="tarjeta">
+                <span class="etiqueta">Ingredientes del refri</span>
+                <div class="dato" id="total-ingredientes">—</div>
+            </div>
+        </div>
+
+        <!-- Un .dia por cada día; cada .comida-dia lleva su .boton-cambiar -->
+        <div class="semana" id="semana" style="margin-top: var(--espacio-lateral)"></div>
+
+        <!-- Se muestra si todavía no hay menú esta semana -->
+        <div class="tarjeta" id="sin-menu" hidden style="margin-top: var(--espacio-lateral)">
+            <h3>Todavía no tienes menú esta semana</h3>
+            <p>Escanea tu refri y armamos tus 7 días.</p>
+            <a class="boton boton-principal boton-chico" href="escanear_refri.html" style="margin-top: var(--espacio-medio)">Escanear refri</a>
+        </div>
+
+        <!-- Cambiar un platillo: se abre al tocar el botón de cambiar -->
+        <section class="panel-cambio" id="panel-cambio" hidden>
+            <div class="encabezado-pagina">
+                <div>
+                    <span class="etiqueta" id="comida-a-cambiar">Cambiar platillo</span>
+                    <h2 class="titulo-seccion" style="font-size: 24px; line-height: 30px">
+                        ¿No se te antoja <span id="platillo-actual"></span>? <span class="kcal" id="kcal-actual" style="font-size: 16px"></span>
+                    </h2>
+                </div>
+                <button class="boton boton-secundario boton-chico" type="button" id="boton-dejar">Dejar como está</button>
+            </div>
+            <p style="margin: 8px 0 0; color: var(--color-texto-suave); font-size: 14px">Elige otra opción. Primero te mostramos las que se hacen con lo que ya tienes en tu refri.</p>
+
+            <!-- Una .opcion por receta; la elegida lleva .opcion-elegida -->
+            <div class="opciones-cambio" id="opciones"></div>
+
+            <div class="grupo-botones" style="margin-top: var(--espacio-medio)">
+                <button class="boton boton-principal" type="button" id="boton-confirmar-cambio" disabled>Cambiar platillo</button>
+            </div>
+        </section>
+
+        <div class="mensaje mensaje-error" id="error" hidden></div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/datos_ejemplo.js"></script>
+    <script src="js/semana.js"></script>
+    <script src="js/menu.js"></script>
+</body>
+</html>
