@@ -1,4 +1,4 @@
-// Menú de la semana: resumen, 7 días y cambiar un platillo
+
 // Usa GET /usuarios/{id}, GET /escaneos/{id}/ultimo, GET /menus/{id}/{semana},
 //     GET /recetas?categoria= y PUT /menus/{id}/{semana}
 
@@ -6,9 +6,9 @@ const SEMANA = semanaISO();
 
 let menu = null;
 let escaneo = null;
-let cambio = null;              // { indiceDia, tipo } de la comida que se está cambiando
-let opcionElegida = null;       // receta elegida en el panel
-const recetasPorTipo = {};      // para no pedir las mismas recetas dos veces
+let cambio = null;              
+let opcionElegida = null;       
+const recetasPorTipo = {};      
 
 const panel = document.getElementById("panel-cambio");
 const botonConfirmar = document.getElementById("boton-confirmar-cambio");

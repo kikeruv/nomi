@@ -1,6 +1,3 @@
-// Llamadas a la API de Nomi (página -> backend -> DynamoDB y S3)
-// Los endpoints y lo que reciben/regresan están en docs/api.md
-
 // Función base: hace la petición y convierte la respuesta en datos o en error
 async function pedir(metodo, ruta, cuerpo) {
     if (!CONFIG.API_URL) {

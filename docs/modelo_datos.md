@@ -101,3 +101,8 @@ La API convierte la llave (`imagen` o `foto`) en una URL firmada antes de mandar
 - `plan` se reemplazó por `menus`; se agregó `escaneos`.
 - `usuarios`: sin `edad` ni `presupuesto`; con datos para armar el menú y el tema.
 - `recetario`: sin `costo_estimado`; con macros, `imagen` y categorías `desayuno` / `comida` / `cena`.
+
+## Fotos del refri (API de fotos de Alan)
+La foto del refri no pasa por el backend de la EC2: la página la sube directo a S3 con una URL firmada que da la Lambda de Alan (`POST /photos`). Rekognition analiza la foto y la Lambda guarda la foto con sus ingredientes detectados; el historial se lee con `GET /photos?userId=...` (ver `docs/api.md`).
+
+El bucket y la tabla que usa esa Lambda están en la rama `alan`.

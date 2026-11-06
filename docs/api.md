@@ -1,6 +1,14 @@
+# APIs de Nomi
+
+La página usa dos APIs:
+
+| API | Base | Dónde se configura | Quién la hizo |
+|---|---|---|---|
+| **API de Nomi** (usuarios, escaneos, menús, recetas) | `http://32.198.178.239:3001` (EC2) o `http://localhost:3000` (tu compu) | `CONFIG.API_URL` | Enrique |
+| **API de fotos** (subir la foto del refri e historial) | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos` | `CONFIG.API_REFRI_URL` | Alan |
+
 # API de Nomi
 
-Base: la Invoke URL de API Gateway, o `http://localhost:3000` para probar en tu compu (se pone en `src/frontend/js/config.js` como `API_URL`).
 Todas las respuestas son JSON. La página llama a estos endpoints desde `src/frontend/js/api.js`.
 
 | Código | Significado |
@@ -66,8 +74,31 @@ Se usa al cambiar un platillo. Body: `{ "dias": [...] }` con los 7 días complet
 ### `GET /recetas/{receta_id}`
 200 → receta con `imagen_url` firmada. 404 si no existe.
 
-## Caso de uso de la entrega intermedia
-1. `escanear_refri.html` → `POST /escaneos` guarda los ingredientes y genera el menú.
-2. `menu.html` → `GET /menus/{usuario_id}/{semana}` muestra los 7 días.
+# API de fotos (API Gateway + Lambda + Rekognition)
 
-Flujo: página → backend en Node → DynamoDB.
+La llama `src/frontend/js/escanear_refri.js`.
+
+### `POST /photos`
+Pide una URL firmada para subir la foto del refri directo a S3.
+Body:
+```json
+{ "fileType": "image/jpeg", "userId": "u1" }
+```
+200 → `{ "url": "https://...s3...", "clave": "..." }`
+
+Después la página sube el archivo con `PUT` a esa `url` (con `Content-Type` igual a `fileType`). Al llegar la foto a S3, Rekognition detecta los ingredientes.
+
+### `GET /photos?userId=u1`
+Historial de fotos del usuario.
+200 →
+```json
+{ "fotos": [ { "url_foto": "https://...", "createdAt": 1793900000, "ingredientes": ["Egg", "Milk"] } ] }
+```
+`createdAt` está en segundos. Si `ingredientes` todavía no viene, la página muestra "Procesando con IA…".
+
+# Caso de uso de punta a punta
+1. `escanear_refri.html`: el usuario sube la foto → `POST /photos` + `PUT` a S3 → Rekognition detecta ingredientes → aparecen en el historial (`GET /photos`).
+2. El usuario confirma o agrega ingredientes y da **Generar menú** → `POST /escaneos` guarda el escaneo en DynamoDB y genera el menú.
+3. `menu.html` → `GET /menus/{usuario_id}/{semana}` muestra los 7 días.
+
+Flujo: página (S3) → backend en EC2 → DynamoDB, y página → API Gateway → Lambda → S3 → Rekognition.

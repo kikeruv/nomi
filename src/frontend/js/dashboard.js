@@ -1,4 +1,3 @@
-// Mi semana: calorías de hoy, último escaneo, qué comes hoy y los 7 días
 // Usa GET /usuarios/{id}, GET /menus/{id}/{semana} y GET /escaneos/{id}/ultimo
 
 function ponerBarra(idBarra, valor, meta) {

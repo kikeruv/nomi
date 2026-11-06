@@ -1,4 +1,3 @@
-// Recetas: filtra por categoría con GET /recetas?categoria= y busca por nombre o ingrediente
 // Primero muestra las que más ingredientes tienen en tu refri (último escaneo)
 
 const NOMBRE_CATEGORIA = { desayuno: "Desayuno", comida: "Comida", cena: "Cena" };
