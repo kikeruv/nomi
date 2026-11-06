@@ -21,7 +21,7 @@ function semanaISO(d) {
 
 // "Plátano" -> "platano"
 function normalizar(texto) {
-    return String(texto).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    return String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 // Cuántos ingredientes de la receta hay en el refri

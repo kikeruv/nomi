@@ -1,97 +1,10 @@
-// Llamadas a la API de Nomi (API Gateway -> contenedor en EC2 -> DynamoDB)
-//
-// Contrato (lo que manda y recibe cada endpoint):
-//
-// GET  /usuarios/{usuario_id}            -> 200 { usuario_id, nombre, correo, personas, comidas_por_dia,
-//                                                 dia_escaneo, tiempo_max_min, meta_calorias, meta_proteina,
-//                                                 preferencias: [..], tema }      404 si no existe
-// POST /usuarios                         -> 201 usuario creado                   400 si faltan datos
-// PUT  /usuarios/{usuario_id}            -> 200 usuario actualizado              400 si faltan datos
-//
-// POST /escaneos                         body { usuario_id, personas, comidas_por_dia,
-//                                               ingredientes: [{ nombre, cantidad }] }
-//                                        -> 201 { usuario_id, fecha, ... }       400 si faltan datos
-// GET  /escaneos/{usuario_id}/ultimo     -> 200 el escaneo más reciente          404 si no hay
-//
-// GET  /menus/{usuario_id}/{semana}      -> 200 { usuario_id, semana, dias: [
-//                                                 { dia, fecha, total_kcal,
-//                                                   comidas: { desayuno, comida, cena } } ] }
-//                                           cada comida: { receta_id, titulo, calorias, tiempo_min,
-//                                                          proteina_g, carbs_g, grasa_g, usa_refri }
-//                                        404 si no hay menú esa semana
-// PUT  /menus/{usuario_id}/{semana}      body { dias } -> 200 menú actualizado (al cambiar un platillo)
-//
-// GET  /recetas?categoria=desayuno       -> 200 [ receta, ... ]  (sin categoria: todas)
-// GET  /recetas/{receta_id}              -> 200 receta                           404 si no existe
-//                                           receta: { receta_id, categoria, titulo, descripcion, tiempo_min,
-//                                                     porciones, calorias, proteina_g, carbs_g, grasa_g,
-//                                                     imagen_url, ingredientes: [{ nombre, cantidad }], pasos: [..] }
-
-// ---------- Modo de ejemplo (sin AWS) ----------
-// Mientras CONFIG.API_URL esté vacío, las respuestas salen de js/datos_ejemplo.js.
-// Los cambios (crear cuenta, guardar perfil, escanear, cambiar platillo) duran
-// solo mientras la página está abierta: no se guarda nada en el navegador.
-
-const menusEjemplo = {};
-
-function pedirEjemplo(metodo, ruta, cuerpo) {
-    const [camino, consulta] = ruta.split("?");
-    const partes = camino.split("/").filter(Boolean).map(decodeURIComponent);
-
-    // /usuarios
-    if (partes[0] === "usuarios") {
-        if (metodo === "POST") {
-            USUARIOS_EJEMPLO[cuerpo.usuario_id] = cuerpo;
-            return cuerpo;
-        }
-        const usuario = USUARIOS_EJEMPLO[partes[1]];
-        if (metodo === "PUT") {
-            USUARIOS_EJEMPLO[partes[1]] = { ...(usuario || { usuario_id: partes[1] }), ...cuerpo };
-            return USUARIOS_EJEMPLO[partes[1]];
-        }
-        return usuario || null;
-    }
-
-    // /escaneos
-    if (partes[0] === "escaneos") {
-        if (metodo === "POST") {
-            const hora = new Date().toTimeString().slice(0, 8);
-            const escaneo = { ...cuerpo, fecha: `${fechaHoy()}T${hora}` };   // la SK la pone el backend
-            ESCANEOS_EJEMPLO.push(escaneo);
-            return escaneo;
-        }
-        const delUsuario = ESCANEOS_EJEMPLO.filter((escaneo) => escaneo.usuario_id === partes[1]);
-        return delUsuario.length ? delUsuario[delUsuario.length - 1] : null;
-    }
-
-    // /menus/{usuario_id}/{semana}
-    if (partes[0] === "menus") {
-        const llave = `${partes[1]}|${partes[2]}`;
-        if (metodo === "PUT") {
-            menusEjemplo[llave] = { usuario_id: partes[1], semana: partes[2], ...cuerpo };
-        }
-        if (!menusEjemplo[llave] && USUARIOS_EJEMPLO[partes[1]]) {
-            menusEjemplo[llave] = menuDeEjemplo(partes[1], partes[2]);
-        }
-        return menusEjemplo[llave] || null;
-    }
-
-    // /recetas y /recetas/{receta_id}
-    if (partes[0] === "recetas") {
-        if (partes[1]) {
-            return RECETAS_EJEMPLO.find((receta) => receta.receta_id === partes[1]) || null;
-        }
-        const categoria = new URLSearchParams(consulta || "").get("categoria");
-        return RECETAS_EJEMPLO.filter((receta) => !categoria || receta.categoria === categoria);
-    }
-
-    return null;
-}
+// Llamadas a la API de Nomi (página -> backend -> DynamoDB y S3)
+// Los endpoints y lo que reciben/regresan están en docs/api.md
 
 // Función base: hace la petición y convierte la respuesta en datos o en error
 async function pedir(metodo, ruta, cuerpo) {
     if (!CONFIG.API_URL) {
-        return pedirEjemplo(metodo, ruta, cuerpo);
+        throw new Error("Falta la URL de la API en js/config.js.");
     }
 
     const opciones = { method: metodo, headers: {} };
