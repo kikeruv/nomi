@@ -7,24 +7,18 @@ Aplicación web que arma tu menú de la semana a partir de una foto de tu refri:
 - Enrique Alonso Ruvalcaba Martinez – 751600
 
 ## Arquitectura
-**Entrega intermedia:** la página funciona solo con S3 (sitio estático). Los datos salen de `js/datos_ejemplo.js`, que tiene los mismos datos que se cargaron en DynamoDB.
-
 ```
-Usuario → S3 nomi-page-2026 (HTML, CSS, JS e imágenes)
-```
-
-El backend en Node (`src/backend`) ya está hecho y se conecta a DynamoDB y S3. Se puede correr en la compu para probar la página con datos reales:
-
-```
-Página → backend en Node (localhost:3000) → DynamoDB
-                                          ↘ S3 nomi-photos (URLs firmadas)
+Página (S3 nomi-page-2026) → API Gateway (https) → Docker en EC2 (backend en Node) → DynamoDB
+                                                                                  ↘ S3 nomi-photos (URLs firmadas)
 ```
 
 | Servicio | Uso |
 |---|---|
-| S3 `nomi-page-2026` | Sitio estático (HTML, CSS, JS y fotos de recetas en `img/recetas/`) |
-| S3 `nomi-photos` (privado) | Fotos de recetas y del refri que usa el backend |
+| S3 `nomi-page-2026` | Sitio estático (HTML, CSS y JS) |
+| API Gateway (HTTP API) | URL pública en https que manda las peticiones a la EC2 |
+| EC2 `nomi-api` + Docker | Backend en Node (puerto 3001, Elastic IP) con `LabInstanceProfile`, sin llaves en el código |
 | DynamoDB | Tablas `usuarios`, `escaneos`, `menus` y `recetario` |
+| S3 `nomi-photos` (privado) | Fotos de recetas y del refri; el backend las entrega como URL firmada |
 
 ## Estructura del repositorio
 ```
@@ -42,8 +36,7 @@ nomi/
     │   └── utils/menu.js # Fechas y armado del menú de la semana
     ├── frontend/         # Página web
     │   ├── css/          # tokens.css (colores y tema) y estilos.css
-    │   ├── img/recetas/  # Fotos de las recetas (r1.jpg … r9.jpg)
-    │   └── js/           # Un archivo por página + api.js, config.js, tema.js y datos_ejemplo.js
+    │   └── js/           # Un archivo por página + api.js, config.js y tema.js
     └── scripts/
         ├── crear_tablas.py   # Crea las tablas de DynamoDB
         └── cargar_datos.py   # Carga los datos de prueba
@@ -62,9 +55,9 @@ nomi/
 | `error.html` | Página 404 del sitio estático |
 
 ## Cómo correrlo
-**Solo la página (como en S3):** abre `src/frontend/index.html` en el navegador. Con `API_URL: ""` en `src/frontend/js/config.js`, las páginas usan los datos de `js/datos_ejemplo.js`. Lo que se cambia (perfil, escaneo, platillo) dura solo mientras la página está abierta; no se guarda nada en el navegador.
+La página siempre usa el backend: la URL va en `src/frontend/js/config.js` como `API_URL`.
 
-**Con el backend (datos reales de DynamoDB):**
+**Backend en tu compu (para probar):**
 1. Copia las credenciales del Learner Lab (AWS Details → AWS CLI) a `~/.aws/credentials`.
 2. En `src/backend` crea el `.env`:
    ```
@@ -79,8 +72,9 @@ nomi/
    npm install
    node main.js
    ```
-4. En `src/frontend/js/config.js` pon `API_URL: "http://localhost:3000"` y abre la página.
-5. Antes de subir la página a S3, regresa `API_URL` a `""`.
+4. En `config.js` pon `API_URL: "http://localhost:3000"` y abre la página.
+
+**Backend en AWS:** en `config.js` va la Invoke URL de API Gateway (`https://...execute-api.us-east-1.amazonaws.com`).
 
 ## Cómo recrear los recursos (Learner Lab)
 Requisitos: AWS CLI configurado (`aws configure`) y Python con `boto3`.
@@ -97,15 +91,25 @@ Requisitos: AWS CLI configurado (`aws configure`) y Python con `boto3`.
    - `recetas/{receta_id}.jpg` (r1 a r9)
    - `escaneos/{usuario_id}/{fecha}.jpg`
 
-   Copia las fotos de las recetas a la carpeta de la página:
-   ```
-   aws s3 cp s3://nomi-photos/recetas/ src/frontend/img/recetas/ --recursive
-   ```
-
-3. **S3: página** (`nomi-page-2026`, público). Con `API_URL: ""` en `config.js`:
+3. **S3: página** (`nomi-page-2026`, público). Con la URL de API Gateway en `config.js`:
    ```
    aws s3 rm s3://nomi-page-2026 --recursive
    aws s3 cp src/frontend s3://nomi-page-2026 --recursive
    ```
    En **Properties → Static website hosting**: documento de índice `index.html` y de error `error.html`.
    En **Permissions**: *Block public access* apagado y una bucket policy con `s3:GetObject` público.
+
+4. **EC2** (`nomi-api`): Amazon Linux 2023, `t3.micro`, `LabInstanceProfile`, security group con SSH (22) y TCP 3001 abiertos, y una Elastic IP.
+   ```
+   sudo dnf install -y docker
+   sudo systemctl enable --now docker
+   sudo usermod -aG docker ec2-user
+   ```
+   Copia `src/backend` a `~/backend` (con su `.env` y `PORT=3001`) y:
+   ```
+   cd ~/backend
+   docker build -t nomi-api .
+   docker run -d --name nomi-api --restart always -p 3001:3001 --env-file .env nomi-api
+   ```
+
+5. **API Gateway**: HTTP API con integración HTTP `ANY http://<ELASTIC-IP>:3001/{proxy}`, ruta `ANY /{proxy+}` y CORS (`*`, `GET POST PUT OPTIONS`, `content-type`).

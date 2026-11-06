@@ -1,7 +1,6 @@
 # API de Nomi
 
-Base: la URL del backend, por ejemplo `http://localhost:3000` (se pone en `src/frontend/js/config.js` como `API_URL`).
-Con `API_URL` vacío la página no llama a la API y usa `js/datos_ejemplo.js`.
+Base: la Invoke URL de API Gateway, o `http://localhost:3000` para probar en tu compu (se pone en `src/frontend/js/config.js` como `API_URL`).
 Todas las respuestas son JSON. La página llama a estos endpoints desde `src/frontend/js/api.js`.
 
 | Código | Significado |
