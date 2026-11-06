@@ -15,35 +15,9 @@ TABLAS_DIAGRAMA = [
         ],
         "BillingMode": "PAY_PER_REQUEST"
     },
-    # Tabla de Registro de Calorias
+    # Tabla de Escaneos del refri
     {
-        "TableName": "calorias",
-        "KeySchema": [
-            {"AttributeName": "usuario_id", "KeyType": "HASH"},
-            {"AttributeName": "fecha_comida", "KeyType": "RANGE"}
-        ],
-        "AttributeDefinitions": [
-            {"AttributeName": "usuario_id", "AttributeType": "S"},
-            {"AttributeName": "fecha_comida", "AttributeType": "S"}
-        ],
-        "BillingMode": "PAY_PER_REQUEST"
-    },
-    # Tabla de Planes semanales
-    {
-        "TableName": "plan",
-        "KeySchema": [
-            {"AttributeName": "usuario_id", "KeyType": "HASH"},
-            {"AttributeName": "semana", "KeyType": "RANGE"}
-        ],
-        "AttributeDefinitions": [
-            {"AttributeName": "usuario_id", "AttributeType": "S"},
-            {"AttributeName": "semana", "AttributeType": "S"}
-        ],
-        "BillingMode": "PAY_PER_REQUEST"
-    },
-    # Tabla de Historial de recetas
-    {
-        "TableName": "historial",
+        "TableName": "escaneos",
         "KeySchema": [
             {"AttributeName": "usuario_id", "KeyType": "HASH"},
             {"AttributeName": "fecha", "KeyType": "RANGE"}
@@ -51,6 +25,19 @@ TABLAS_DIAGRAMA = [
         "AttributeDefinitions": [
             {"AttributeName": "usuario_id", "AttributeType": "S"},
             {"AttributeName": "fecha", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    },
+    # Tabla de Menus semanales
+    {
+        "TableName": "menus",
+        "KeySchema": [
+            {"AttributeName": "usuario_id", "KeyType": "HASH"},
+            {"AttributeName": "semana", "KeyType": "RANGE"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "usuario_id", "AttributeType": "S"},
+            {"AttributeName": "semana", "AttributeType": "S"}
         ],
         "BillingMode": "PAY_PER_REQUEST"
     },
@@ -81,8 +68,15 @@ TABLAS_DIAGRAMA = [
 ]
 
 def crear_tablas_nutricion():
+    # Tablas que ya existen en AWS (para no intentar crearlas otra vez)
+    existentes = [tabla.name for tabla in dynamodb.tables.all()]
+
     for config in TABLAS_DIAGRAMA:
         nombre_tabla = config["TableName"]
+        if nombre_tabla in existentes:
+            print(f"La tabla '{nombre_tabla}' ya existe, se salta\n")
+            continue
+
         print(f"Creando tabla: '{nombre_tabla}'...")
         tabla = dynamodb.create_table(**config)
         
