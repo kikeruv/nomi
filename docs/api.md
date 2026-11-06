@@ -1,104 +1,126 @@
-# APIs de Nomi
+# API
 
-La página usa dos APIs:
+## Flujo de una petición
+![Diagrama de la solución](solucion.png)
 
-| API | Base | Dónde se configura | Quién la hizo |
+```
+Página (S3 nomi-page-2026) ─→ API Gateway "nomi" (stage dev)
+                                 ├─ /photos     ─Lambda proxy→ photo_upload_url / get_photo ─→ S3 ─→ Rekognition
+                                 └─ /{proxy+}   ─HTTP proxy→  EC2 nomi-api: contenedor Docker Node :3001 ─→ DynamoDB / S3 nomi-photos (planeado)
+```
+Hoy la página llama directo a la EC2 (`http://32.198.178.239:3001`); cuando exista `/{proxy+}` todo pasa por el mismo API Gateway.
+
+## API Gateway
+Un solo API para todo el proyecto.
+
+| API | Tipo | Stage | Invoke URL |
 |---|---|---|---|
-| **API de Nomi** (usuarios, escaneos, menús, recetas) | `http://32.198.178.239:3001` (EC2) o `http://localhost:3000` (tu compu) | `CONFIG.API_URL` | Enrique |
-| **API de fotos** (subir la foto del refri e historial) | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos` | `CONFIG.API_REFRI_URL` | Alan |
+| `nomi` (`lnkiuphyxj`) | REST | `dev` | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev` |
 
-# API de Nomi
+### Recursos
+![Recursos en API Gateway](evidencias/01_api_gateway_photos.png)
 
-Todas las respuestas son JSON. La página llama a estos endpoints desde `src/frontend/js/api.js`.
+| Recurso | Método | Integración | Destino | Request | Response | Estado |
+|---|---|---|---|---|---|---|
+| `/photos` | `POST` | Lambda proxy | `photo_upload_url` | `{ "fileType": "image/jpeg", "userId": "u1" }` | `200 { "url", "clave" }` | ✅ Desplegado |
+| `/photos` | `GET` | Lambda proxy | `get_photo` | `?userId=u1` | `200 { "fotos": [...] }` | ✅ Desplegado |
+| `/photos` | `OPTIONS` | Mock | CORS | — | Headers CORS | ✅ Desplegado |
+| `/{proxy+}` | `ANY` | HTTP proxy | `http://32.198.178.239:3001/{proxy}` | Igual que la API de Nomi | Igual que la API de Nomi | ⏳ Planeado |
+
+`/photos` es más específico que `/{proxy+}`, así que las fotos van a la Lambda y el resto (`/usuarios`, `/escaneos`, `/menus`, `/recetas`) a la EC2.
+
+Así queda `config.js` con un solo API:
+```js
+API_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev",
+API_REFRI_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos"
+```
+
+### ¿Por qué un solo API Gateway?
+Una sola URL y un solo stage para la página, un solo lugar para CORS y un diagrama más simple.
+
+### ¿Proxy o no proxy?
+Usamos **proxy** en los dos casos:
+- **EC2 (HTTP proxy):** Express ya valida, arma las respuestas y pone los códigos (400, 404, 409). Un solo recurso `/{proxy+}` manda todas las rutas al contenedor sin repetir cada endpoint en API Gateway ni escribir mapping templates.
+- **Lambda (Lambda proxy):** la Lambda recibe el evento completo (método, query, body) y regresa `statusCode`, headers y body, así decide la respuesta ella misma.
+
+Lo que se pierde: API Gateway no valida el body (lo hace el backend) y no se documentan los recursos uno por uno en la consola.
+
+## API de Nomi (backend en EC2)
+Base actual: `http://32.198.178.239:3001`. Código en `src/backend`. Todas las respuestas son JSON.
 
 | Código | Significado |
 |---|---|
 | 200 / 201 | OK / creado |
 | 400 | Faltan datos o son inválidos → `{ "error": "mensaje" }` |
-| 404 | No existe (la página lo toma como "sin datos") |
+| 404 | No existe |
 | 409 | Ya existe |
-| 500 | Error del servidor |
 
-### `GET /`
-Revisa que la API esté viva → `{ "ok": true }`.
+| Método | Ruta | Qué hace | Tabla |
+|---|---|---|---|
+| `GET` | `/` | Revisa que la API viva → `{ "ok": true }` | — |
+| `GET` | `/usuarios/{usuario_id}` | Perfil | `usuarios` |
+| `POST` | `/usuarios` | Crea usuario (400 si faltan `usuario_id`, `nombre`, `correo`, `personas`; 409 si existe) | `usuarios` |
+| `PUT` | `/usuarios/{usuario_id}` | Cambia solo los campos enviados; `null` borra el campo | `usuarios` |
+| `POST` | `/escaneos` | Guarda el escaneo y genera el menú de la semana | `escaneos`, `recetario`, `menus` |
+| `GET` | `/escaneos/{usuario_id}/ultimo` | Último escaneo con `foto_url` firmada | `escaneos` |
+| `GET` | `/menus/{usuario_id}/{semana}` | Menú de la semana (`2026-W45`) | `menus` |
+| `PUT` | `/menus/{usuario_id}/{semana}` | Reemplaza el menú (400 si no son 7 días) | `menus` |
+| `GET` | `/recetas?categoria=desayuno` | Recetas (con categoría usa el GSI) con `imagen_url` firmada | `recetario` |
+| `GET` | `/recetas/{receta_id}` | Una receta | `recetario` |
 
-## Usuarios
+## Caso de uso de punta a punta
+1. `escanear_refri.html`: la foto sube con `POST /photos` + `PUT` a S3 → Rekognition detecta ingredientes → se ven en el historial (`GET /photos`).
+2. El usuario confirma los ingredientes y da **Generar menú** → `POST /escaneos` guarda el escaneo en DynamoDB y crea el menú.
+3. `menu.html` → `GET /menus/u1/2026-W45` pinta los 7 días.
 
-### `GET /usuarios/{usuario_id}`
-200 → item de la tabla `usuarios`.
-
-### `POST /usuarios`
-Body:
-```json
-{ "usuario_id": "u3", "nombre": "Nicky", "correo": "nicky@correo.com",
-  "personas": 2, "comidas_por_dia": 3, "meta_calorias": 2000,
-  "preferencias": [], "tema": "dark" }
+## Pruebas
+Cuando exista `/{proxy+}`, cambia `API` por `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev`.
+```bash
+API=http://32.198.178.239:3001
 ```
-201 → usuario creado. 400 si falta `usuario_id`, `nombre`, `correo` o `personas`. 409 si el usuario ya existe.
 
-### `PUT /usuarios/{usuario_id}`
-Body: solo los campos que cambian (`nombre`, `correo`, `personas`, `comidas_por_dia`, `dia_escaneo`, `tiempo_max_min`, `meta_calorias`, `meta_proteina`, `preferencias`, `tema`).
-Un campo en `null` se borra del usuario (ej. quitar la meta de calorías).
-200 → usuario actualizado. 404 si el usuario no existe.
-
-## Escaneos
-
-### `POST /escaneos`
-Body:
-```json
-{ "usuario_id": "u3", "personas": 2, "comidas_por_dia": 3,
-  "ingredientes": [ { "nombre": "huevo", "cantidad": "12 piezas" } ] }
+**GET — perfil**
+```bash
+curl $API/usuarios/u1
 ```
-El backend pone `fecha` (SK) y genera el menú de la semana con las recetas del recetario.
-201 → `{ usuario_id, fecha, ..., semana }`. 400 si no hay ingredientes o `personas`/`comidas_por_dia` no son válidos. 404 si el usuario no existe.
-
-### `GET /escaneos/{usuario_id}/ultimo`
-200 → el escaneo más reciente (con `foto_url` firmada si tiene foto). 404 si no hay.
-
-## Menús
-
-### `GET /menus/{usuario_id}/{semana}`
-`semana` en formato ISO, ej. `2026-W45`.
-200 → `{ usuario_id, semana, dias: [...] }` (forma en `docs/modelo_datos.md`). 404 si no hay menú esa semana.
-
-### `PUT /menus/{usuario_id}/{semana}`
-Se usa al cambiar un platillo. Body: `{ "dias": [...] }` con los 7 días completos.
-200 → menú actualizado.
-
-## Recetas
-
-### `GET /recetas?categoria=desayuno`
-`categoria` opcional (`desayuno`, `comida`, `cena`). Con categoría usa `query` en el GSI `CategoriaIndex`; sin categoría regresa todas.
-200 → `[ receta, ... ]` con `imagen_url` firmada.
-
-### `GET /recetas/{receta_id}`
-200 → receta con `imagen_url` firmada. 404 si no existe.
-
-# API de fotos (API Gateway + Lambda + Rekognition)
-
-La llama `src/frontend/js/escanear_refri.js`.
-
-### `POST /photos`
-Pide una URL firmada para subir la foto del refri directo a S3.
-Body:
 ```json
-{ "fileType": "image/jpeg", "userId": "u1" }
+{"usuario_id":"u1","nombre":"Enrique Ruvalcaba","correo":"enrique@gmail.com","personas":2,"comidas_por_dia":3,"dia_escaneo":"domingo","tiempo_max_min":45,"meta_calorias":2000,"meta_proteina":120,"preferencias":["sin_cerdo"],"tema":"dark"}
 ```
-200 → `{ "url": "https://...s3...", "clave": "..." }`
 
-Después la página sube el archivo con `PUT` a esa `url` (con `Content-Type` igual a `fileType`). Al llegar la foto a S3, Rekognition detecta los ingredientes.
-
-### `GET /photos?userId=u1`
-Historial de fotos del usuario.
-200 →
-```json
-{ "fotos": [ { "url_foto": "https://...", "createdAt": 1793900000, "ingredientes": ["Egg", "Milk"] } ] }
+**GET — recetas por categoría (GSI)**
+```bash
+curl "$API/recetas?categoria=desayuno"
 ```
-`createdAt` está en segundos. Si `ingredientes` todavía no viene, la página muestra "Procesando con IA…".
+→ `200` con 3 recetas, cada una con `imagen_url` firmada.
 
-# Caso de uso de punta a punta
-1. `escanear_refri.html`: el usuario sube la foto → `POST /photos` + `PUT` a S3 → Rekognition detecta ingredientes → aparecen en el historial (`GET /photos`).
-2. El usuario confirma o agrega ingredientes y da **Generar menú** → `POST /escaneos` guarda el escaneo en DynamoDB y genera el menú.
-3. `menu.html` → `GET /menus/{usuario_id}/{semana}` muestra los 7 días.
+**POST — escaneo que genera el menú**
+```bash
+curl -X POST $API/escaneos -H "Content-Type: application/json" \
+  -d '{"usuario_id":"u1","personas":2,"comidas_por_dia":3,"ingredientes":[{"nombre":"huevo","cantidad":"12 piezas"}]}'
+```
+→ `201` con el escaneo guardado, su `fecha` y `"semana":"2026-W45"`.
 
-Flujo: página (S3) → backend en EC2 → DynamoDB, y página → API Gateway → Lambda → S3 → Rekognition.
+**GET — menú generado**
+```bash
+curl $API/menus/u1/2026-W45
+```
+→ `200 { "usuario_id":"u1", "semana":"2026-W45", "dias":[ 7 días ] }`
+
+**Peticiones mal formadas**
+```bash
+curl -X POST $API/escaneos -H "Content-Type: application/json" -d '{"usuario_id":"u1"}'
+# 400 {"error":"Faltan usuario_id, personas o ingredientes."}
+
+curl $API/usuarios/nadie
+# 404 {"error":"El usuario no existe."}
+```
+
+**API de fotos**
+```bash
+curl -X POST https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos \
+  -H "Content-Type: application/json" -d '{"fileType":"image/jpeg","userId":"u1"}'
+# 200 {"url":"https://...amazonaws.com/...","clave":"..."}
+
+curl "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos?userId=u1"
+# 200 {"fotos":[{"url_foto":"https://...","createdAt":1793900000,"ingredientes":["Egg","Milk"]}]}
+```

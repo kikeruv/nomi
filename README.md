@@ -4,6 +4,8 @@ Aplicación web que arma tu menú de la semana a partir de una foto de tu refri:
 
 Proyecto final de **Desarrollo en la Nube** (ITESO).
 
+**Página:** http://nomi-page-2026.s3-website-us-east-1.amazonaws.com
+
 ## Integrantes
 | Integrante | Expediente | Parte principal |
 |---|---|---|
@@ -11,6 +13,8 @@ Proyecto final de **Desarrollo en la Nube** (ITESO).
 | Enrique Alonso Ruvalcaba Martinez | 751600 | Página, backend en EC2, DynamoDB y S3 |
 
 ## Arquitectura
+![Diagrama de la solución](docs/solucion.png)
+
 ```
                          ┌──────────────────────────────────────────────┐
 Usuario ─→ Página (S3) ──┤ API de Nomi: EC2 + Docker (Node, puerto 3001) ├─→ DynamoDB (usuarios, escaneos, menus, recetario)
@@ -23,7 +27,7 @@ Usuario ─→ Página (S3) ──┤ API de Nomi: EC2 + Docker (Node, puerto 30
 |---|---|
 | **S3 `nomi-page-2026`** | Sitio estático: HTML, CSS y JS (público) |
 | **EC2 `nomi-api` + Docker** | Backend en Node/Express. Elastic IP `32.198.178.239`, puerto `3001`. Permisos con `LabInstanceProfile` (sin llaves en el código) |
-| **DynamoDB** | Tablas `usuarios`, `escaneos`, `menus` y `recetario` (ver `docs/modelo_datos.md`) |
+| **DynamoDB** | Tablas `usuarios`, `escaneos`, `menus` y `recetario` (ver `docs/modelo-datos.md`) |
 | **S3 `nomi-photos`** | Fotos de las recetas (privado); el backend las entrega como URL firmada |
 | **API Gateway + Lambda** (Alan) | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos`: da una URL firmada para subir la foto del refri a S3 y regresa el historial de fotos |
 | **Rekognition** (Alan) | Detecta los ingredientes en la foto del refri |
@@ -31,12 +35,14 @@ Usuario ─→ Página (S3) ──┤ API de Nomi: EC2 + Docker (Node, puerto 30
 ## Documentación
 | Archivo | Contenido |
 |---|---|
-| `docs/api.md` | Todos los endpoints (API de Nomi y API de fotos) |
-| `docs/modelo_datos.md` | Tablas de DynamoDB, llaves, relaciones y rutas en S3 |
+| `docs/solucion.png` | Diagrama de la solución (desplegado vs planeado) |
+| `docs/api.md` | API Gateway (recursos, stage, Invoke URL, proxy), endpoints y pruebas con curl |
+| `docs/modelo-datos.md` | Tablas, llaves, consultas principales y por qué DynamoDB |
 | `docs/backend.md` | Cómo está hecho el backend (capas, archivos, menú) |
 | `docs/frontend.md` | Páginas, qué JS usa cada una y a qué endpoints llama |
 | `docs/despliegue.md` | Paso a paso para levantar todo en el Learner Lab |
-| `docs/pendientes.md` | Lo que está hecho y lo que falta |
+| `docs/pendientes.md` | Lo que falta y quién lo hace |
+| `docs/evidencias/` | Capturas de API Gateway, EC2, Docker, DynamoDB, S3 y la página |
 
 ## Estructura del repositorio
 ```
