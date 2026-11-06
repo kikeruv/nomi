@@ -1,56 +1,54 @@
-/* =========================================================
-   NOMI · Variables del design system
-   Tema oscuro = principal · Tema claro = data-theme="light"
-   ========================================================= */
 
 :root {
-  /* Colores */
-  --color-fondo: #0b0d10;
-  --color-superficie: #14171c;
-  --color-superficie-elevada: #1c2027;
-  --color-borde: #2a2f38;
-  --color-borde-fuerte: #5d6672;
-  --color-texto: #e9edf2;
-  --color-texto-suave: #9aa3ae;
-  --color-verde: #b6f24a;
-  --color-texto-sobre-verde: #0b0d10;
-  --color-verde-texto: #b6f24a;
-  --color-aviso: #ff8a3d;
-  --color-error: #ff6b6b;
+    /* Colores */
+    --color-fondo: #0b0d10;
+    --color-superficie: #14171c;
+    --color-superficie-elevada: #1c2027;
+    --color-borde: #2a2f38;
+    --color-borde-fuerte: #5d6672;
+    --color-texto: #e9edf2;
+    --color-texto-suave: #9aa3ae;
+    --color-verde: #b6f24a;
+    --color-texto-sobre-verde: #0b0d10;
+    --color-verde-texto: #b6f24a;
+    --color-aviso: #ff8a3d;
+    --color-error: #ff6b6b;
 
-  /* Tipografías */
-  --letra-titulos: Sora, system-ui, sans-serif;
-  --letra-texto: "IBM Plex Sans", system-ui, sans-serif;
-  --letra-numeros: "IBM Plex Mono", ui-monospace, monospace;
+    /* Tipografías */
+    --letra-titulos: Sora, system-ui, sans-serif;
+    --letra-texto: "IBM Plex Sans", system-ui, sans-serif;
+    --letra-numeros: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Espacios */
-  --espacio-mini: 4px;
-  --espacio-chico: 8px;
-  --espacio-medio: 16px;
-  --espacio-tarjeta: 24px;
-  --espacio-lateral: 32px;
-  --espacio-seccion: 64px;
+    /* Espacios */
+    --espacio-mini: 4px;
+    --espacio-chico: 8px;
+    --espacio-medio: 16px;
+    --espacio-tarjeta: 24px;
+    --espacio-lateral: 32px;
+    --espacio-seccion: 64px;
 
-  /* Bordes redondeados */
-  --borde-chico: 4px;
-  --borde-medio: 8px;
-  --borde-grande: 16px;
+    /* Bordes redondeados */
+    --borde-chico: 4px;
+    --borde-medio: 8px;
+    --borde-grande: 16px;
 
-  color-scheme: dark;
+    color-scheme: dark;
 }
 
-/* Tema claro: solo cambian los colores */
+/* Tema claro: crema cálido con verde olivo (solo cambian los colores) */
 :root[data-theme="light"] {
-  --color-fondo: #f6f7f4;
-  --color-superficie: #ffffff;
-  --color-superficie-elevada: #eef0ec;
-  --color-borde: #dfe2dc;
-  --color-borde-fuerte: #858d97;
-  --color-texto: #14171c;
-  --color-texto-suave: #5b636e;
-  --color-verde-texto: #3f6b0a;
-  --color-aviso: #c2410c;
-  --color-error: #c62828;
+    --color-fondo: #f2ede3;
+    --color-superficie: #fbf8f2;
+    --color-superficie-elevada: #e9e2d4;
+    --color-borde: #d9d0bf;
+    --color-borde-fuerte: #857c6c;
+    --color-texto: #0b0d10;
+    --color-texto-suave: #5c5547;
+    --color-verde: #3d660a;
+    --color-texto-sobre-verde: #fbf8f2;
+    --color-verde-texto: #3d660a;
+    --color-aviso: #b23c0a;
+    --color-error: #b42318;
 
-  color-scheme: light;
+    color-scheme: light;
 }
