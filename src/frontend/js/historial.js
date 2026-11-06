@@ -181,11 +181,41 @@ document.querySelectorAll(".filtro").forEach((boton) => {
 
 // ---------- Al cargar la página ----------
 
-async function cargarHistorial() {
+export async function cargarHistorial() {
     if (modoDemo()) {
         document.getElementById("modo").textContent = "Modo demo · datos de ejemplo";
     }
 
+    try {
+        //GET a tu API Gateway
+        const res = await fetch(`${config.apiRefriUrl}?userId=${userId}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error("Error al cargar el historial");
+
+        const contenedor = document.getElementById('historialContainer');
+        contenedor.innerHTML = '';
+
+        data.fotos.forEach(item => {
+            const fecha = new Date(item.createdAt * 1000).toLocaleDateString();
+            const ingredientes = item.ingredientes 
+                ? item.ingredientes.map(ing => `<span class="tag">${ing}</span>`).join(' ')
+                : '<em>Procesando IA...</em>';
+
+            // Insertar tarjetas en el HTML
+            contenedor.innerHTML += `
+                <div class="photo-card">
+                    <img src="${item.url_foto}" alt="Refrigerador" style="max-width: 100%;">
+                    <p>Fecha: ${fecha}</p>
+                    <div>Ingredientes detectados:<br>${ingredientes}</div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("Error al obtener historial:", error);
+    }
+
+    /*
     try {
         todosLosRegistros = await obtenerHistorial(CONFIG.USUARIO_ID);
         pintarTodo();
@@ -195,6 +225,7 @@ async function cargarHistorial() {
         aviso.hidden = false;
         document.getElementById("tabla-dias").innerHTML = `<tr><td colspan="4">Sin datos.</td></tr>`;
     }
+    */
 }
 
 cargarHistorial();
