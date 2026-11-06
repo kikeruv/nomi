@@ -62,14 +62,6 @@ Las credenciales no van en el código: en la compu salen de `~/.aws/credentials`
   4. Arma los 7 días de lunes a domingo, rotando las recetas para no repetir.
   5. Copia título, kcal, tiempo y macros de cada receta al menú y calcula `usa_refri` y `total_kcal`.
 
-## Configuración (`.env`)
-```
-PORT=3001                     # 3000 en la compu, 3001 en la EC2
-AWS_REGION=us-east-1
-TZ=America/Mexico_City        # para que fechas y semana coincidan con la página
-BUCKET_IMAGENES=nomi-photos
-```
-
 ## Docker
 `Dockerfile`: imagen `node:20-alpine` con la zona horaria de México, instala dependencias y corre `node main.js`. `.dockerignore` deja fuera `node_modules` y `.env`.
 
