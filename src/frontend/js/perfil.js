@@ -14,7 +14,7 @@ function quitarError(idCampo) {
     const campo = document.getElementById(idCampo);
     const ayuda = campo.querySelector("small");
     campo.classList.remove("campo-error");
-    ayuda.textContent = ayuda.dataset.ayuda || "";   // regresa el texto de ayuda si tenía
+    ayuda.textContent = ayuda.dataset.ayuda || ""; 
 }
 
 function mostrarMensaje(tipo, texto) {

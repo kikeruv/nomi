@@ -1,6 +1,3 @@
-// Crear cuenta: valida el formulario y crea el usuario con POST /usuarios
-// La contraseña NO se manda a DynamoDB; en la entrega final la maneja Cognito.
-
 const formulario = document.getElementById("formulario-registro");
 const resultado = document.getElementById("resultado");
 
