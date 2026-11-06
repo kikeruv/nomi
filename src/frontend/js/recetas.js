@@ -1,53 +1,87 @@
-const CALORIAS_RESTANTES = 1170;   // Temporal: en la final se calcula con la meta y lo registrado hoy
+// Recetas: filtra por categoría con GET /recetas?categoria= y busca por nombre o ingrediente
+// Primero muestra las que más ingredientes tienen en tu refri (último escaneo)
 
-let categoriaElegida = "todas";
-let soloLasQueCaben = false;
+const NOMBRE_CATEGORIA = { desayuno: "Desayuno", comida: "Comida", cena: "Cena" };
+const LIMITE_KCAL = 500;
 
-const NOMBRE_CATEGORIA = {
-    desayuno: "Desayuno",
-    comida: "Comida",
-    cena: "Cena"
-};
+let recetas = [];
+let escaneo = null;
+let soloLigeras = false;
 
-function formatoNumero(numero) {
-    return Number(numero).toLocaleString("es-MX");
-}
+const contenedor = document.getElementById("lista-recetas");
+const buscador = document.getElementById("buscador");
+const enlaceLigeras = document.getElementById("solo-caben");
 
-// Devuelve las recetas que cumplen con todos los filtros activos
-function recetasFiltradas() {
-    const busqueda = document.getElementById("buscador").value.trim().toLowerCase();
+function crearTarjeta(receta) {
+    const enRefri = ingredientesEnRefri(receta, escaneo);
 
-    return RECETAS.filter((receta) => {
-        const coincideCategoria = categoriaElegida === "todas" || receta.categoria === categoriaElegida;
-        const coincideBusqueda =
-            receta.titulo.toLowerCase().includes(busqueda) ||
-            receta.ingredientes.some((ingrediente) => ingrediente.nombre.toLowerCase().includes(busqueda));
-        const cabe = !soloLasQueCaben || receta.calorias <= CALORIAS_RESTANTES;
+    const tarjeta = crear("a", "tarjeta");
+    tarjeta.href = `receta.html?receta_id=${encodeURIComponent(receta.receta_id)}`;
+    tarjeta.style.color = "inherit";
+    tarjeta.style.textDecoration = "none";
 
-        return coincideCategoria && coincideBusqueda && cabe;
-    });
+    // Foto de S3 (URL firmada) o el círculo vacío
+    const imagen = crear("div", "imagen-receta");
+    if (receta.imagen_url) {
+        const img = crear("img");
+        img.src = receta.imagen_url;
+        img.alt = receta.titulo;
+        img.style.cssText = "width: 100%; height: 100%; object-fit: cover; border-radius: inherit";
+        imagen.appendChild(img);
+    } else {
+        imagen.appendChild(crear("i"));
+    }
+
+    let detalle = `${receta.tiempo_min} min`;
+    if (escaneo) detalle += ` · ${enRefri.tengo} de ${enRefri.total} en tu refri`;
+
+    const datos = crear("p");
+    datos.style.cssText = "display: flex; gap: 8px; align-items: center; flex-wrap: wrap";
+    datos.appendChild(crear("span", "kcal", `${formatoNumero(receta.calorias)} kcal / porción`));
+    if (enRefri.total > 0 && enRefri.tengo === enRefri.total) {
+        datos.appendChild(crear("span", "chip", "Usa tu refri"));
+    } else {
+        datos.appendChild(crear("span", "chip", NOMBRE_CATEGORIA[receta.categoria] || receta.categoria));
+    }
+
+    tarjeta.append(imagen, crear("h3", "", receta.titulo), crear("p", "", detalle), datos);
+    return tarjeta;
 }
 
 function pintarRecetas() {
-    const contenedor = document.getElementById("lista-recetas");
-    const recetas = recetasFiltradas();
+    const busqueda = normalizar(buscador.value);
 
-    if (recetas.length === 0) {
-        contenedor.innerHTML = `<div class="tarjeta"><p>No encontramos recetas con esos filtros.</p></div>`;
+    const lista = recetas
+        .filter((receta) => {
+            const coincide = normalizar(receta.titulo).includes(busqueda) ||
+                (receta.ingredientes || []).some((ingrediente) => normalizar(ingrediente.nombre).includes(busqueda));
+            const ligera = !soloLigeras || Number(receta.calorias) < LIMITE_KCAL;
+            return coincide && ligera;
+        })
+        .sort((a, b) => ingredientesEnRefri(b, escaneo).tengo - ingredientesEnRefri(a, escaneo).tengo);
+
+    contenedor.innerHTML = "";
+    if (lista.length === 0) {
+        const vacio = crear("div", "tarjeta");
+        vacio.appendChild(crear("p", "", recetas.length === 0
+            ? "Todavía no hay recetas en el recetario."
+            : "No encontramos recetas con esos filtros."));
+        contenedor.appendChild(vacio);
         return;
     }
+    lista.forEach((receta) => contenedor.appendChild(crearTarjeta(receta)));
+}
 
-    // Cada tarjeta lleva a receta.html con las dos llaves de la tabla: categoria y receta_id
-    contenedor.innerHTML = recetas.map((receta) => `
-        <a class="tarjeta" href="receta.html?categoria=${receta.categoria}&receta_id=${receta.receta_id}" style="color: inherit; text-decoration: none">
-            <div class="imagen-receta"><i></i></div>
-            <h3>${receta.titulo}</h3>
-            <p>${receta.tiempo_min} min · ${receta.porciones} ${receta.porciones === 1 ? "porción" : "porciones"}</p>
-            <p>
-                <span class="kcal">${formatoNumero(receta.calorias)} kcal</span>
-                <span class="chip">${NOMBRE_CATEGORIA[receta.categoria]}</span>
-            </p>
-        </a>`).join("");
+async function cargarRecetas(categoria) {
+    contenedor.innerHTML = "";
+    contenedor.appendChild(crear("p", "", "Cargando recetas…"));
+    try {
+        recetas = (await obtenerRecetas(categoria === "todas" ? "" : categoria)) || [];
+        pintarRecetas();
+    } catch (error) {
+        contenedor.innerHTML = "";
+        mostrarErrorPagina(`No pudimos cargar las recetas. ${error.message}`);
+    }
 }
 
 // Filtros de categoría
@@ -55,21 +89,34 @@ document.querySelectorAll(".filtro").forEach((boton) => {
     boton.addEventListener("click", () => {
         document.querySelectorAll(".filtro").forEach((otro) => otro.setAttribute("aria-pressed", "false"));
         boton.setAttribute("aria-pressed", "true");
-        categoriaElegida = boton.dataset.categoria;
-        pintarRecetas();
+        cargarRecetas(boton.dataset.categoria);
     });
 });
 
 // Buscador: filtra mientras escribes
-document.getElementById("buscador").addEventListener("input", pintarRecetas);
+buscador.addEventListener("input", pintarRecetas);
 
-// "Ver solo las que caben" funciona como interruptor
-const enlaceCaben = document.getElementById("solo-caben");
-enlaceCaben.addEventListener("click", (evento) => {
+// "Menos de 500 kcal" funciona como interruptor
+enlaceLigeras.addEventListener("click", (evento) => {
     evento.preventDefault();
-    soloLasQueCaben = !soloLasQueCaben;
-    enlaceCaben.textContent = soloLasQueCaben ? "Ver todas →" : "Ver solo las que caben →";
+    soloLigeras = !soloLigeras;
+    enlaceLigeras.textContent = soloLigeras ? "Ver todas →" : `Menos de ${LIMITE_KCAL} kcal →`;
     pintarRecetas();
 });
 
-pintarRecetas();
+// El escaneo solo sirve para ordenar; si falla, las recetas se muestran igual
+async function iniciar() {
+    try {
+        const [usuario, ultimo] = await Promise.all([
+            obtenerUsuario(CONFIG.USUARIO_ID),
+            obtenerUltimoEscaneo(CONFIG.USUARIO_ID)
+        ]);
+        ponerAvatar(usuario);
+        escaneo = ultimo;
+    } catch (error) {
+        escaneo = null;
+    }
+    cargarRecetas("todas");
+}
+
+iniciar();

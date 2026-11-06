@@ -1,4 +1,8 @@
+// Crear cuenta: valida el formulario y crea el usuario con POST /usuarios
+// La contraseña NO se manda a DynamoDB; en la entrega final la maneja Cognito.
+
 const formulario = document.getElementById("formulario-registro");
+const resultado = document.getElementById("resultado");
 
 function mostrarError(idCampo, mensaje) {
     const campo = document.getElementById(idCampo);
@@ -8,25 +12,20 @@ function mostrarError(idCampo, mensaje) {
 
 function quitarError(idCampo) {
     const campo = document.getElementById(idCampo);
-    const ayuda = campo.querySelector("small");
     campo.classList.remove("campo-error");
-    ayuda.textContent = ayuda.dataset.ayuda || "";   // regresa el texto de ayuda si tenía
+    campo.querySelector("small").textContent = "";
 }
 
-function esNumeroPositivo(texto) {
-    const numero = Number(texto);
-    return texto !== "" && Number.isInteger(numero) && numero > 0;
-}
-
-formulario.addEventListener("submit", (evento) => {
+formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();
+    resultado.hidden = true;
 
     const nombre = document.getElementById("nombre").value.trim();
     const correo = document.getElementById("correo").value.trim();
     const contrasena = document.getElementById("contrasena").value;
-    const edad = document.getElementById("edad").value;
-    const presupuesto = document.getElementById("presupuesto").value;
-    const meta = document.getElementById("meta").value;
+    const personas = Number(document.getElementById("personas").value);
+    const textoMeta = document.getElementById("meta").value.trim();
+    const meta = Number(textoMeta);
 
     let valido = true;
 
@@ -48,27 +47,48 @@ formulario.addEventListener("submit", (evento) => {
         valido = false;
     }
 
-    if (!esNumeroPositivo(edad)) {
-        mostrarError("campo-edad", "Escribe tu edad.");
+    if (!Number.isInteger(personas) || personas < 1) {
+        mostrarError("campo-personas", "Escribe al menos 1.");
         valido = false;
     }
 
-    if (!esNumeroPositivo(presupuesto)) {
-        mostrarError("campo-presupuesto", "Escribe un monto.");
-        valido = false;
-    }
-
-    if (!esNumeroPositivo(meta)) {
+    // La meta es opcional: vacía está bien
+    if (textoMeta !== "" && (!Number.isInteger(meta) || meta < 1)) {
         mostrarError("campo-meta", "Escribe un número mayor a 0.");
         valido = false;
     }
 
-    if (valido) {
+    if (!valido) return;
+
+    // Los nombres son los mismos de la tabla Usuarios
+    const usuario = {
+        usuario_id: CONFIG.USUARIO_ID,
+        nombre: nombre,
+        correo: correo,
+        personas: personas,
+        comidas_por_dia: 3,
+        meta_calorias: textoMeta === "" ? null : meta,
+        preferencias: [],
+        tema: leerPreferenciaTema()
+    };
+
+    const boton = formulario.querySelector('button[type="submit"]');
+    boton.disabled = true;
+    boton.textContent = "Creando…";
+
+    try {
+        await crearUsuario(usuario);
         window.location.href = "dashboard.html";
+    } catch (error) {
+        resultado.className = "mensaje mensaje-error";
+        resultado.textContent = `No pudimos crear tu cuenta. ${error.message}`;
+        resultado.hidden = false;
+        boton.disabled = false;
+        boton.textContent = "Crear cuenta";
     }
 });
 
 // Quita el error en cuanto la persona corrige el campo
-["nombre", "correo", "contrasena", "edad", "presupuesto", "meta"].forEach((id) => {
+["nombre", "correo", "contrasena", "personas", "meta"].forEach((id) => {
     document.getElementById(id).addEventListener("input", () => quitarError("campo-" + id));
 });
