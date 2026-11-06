@@ -1,6 +1,7 @@
 # API de Nomi
 
-Base: Invoke URL de API Gateway (se pone en `src/frontend/js/config.js` como `API_URL`).
+Base: la URL del backend, por ejemplo `http://localhost:3000` (se pone en `src/frontend/js/config.js` como `API_URL`).
+Con `API_URL` vacío la página no llama a la API y usa `js/datos_ejemplo.js`.
 Todas las respuestas son JSON. La página llama a estos endpoints desde `src/frontend/js/api.js`.
 
 | Código | Significado |
@@ -12,7 +13,7 @@ Todas las respuestas son JSON. La página llama a estos endpoints desde `src/fro
 | 500 | Error del servidor |
 
 ### `GET /`
-Revisa que el contenedor esté vivo → `{ "ok": true }`.
+Revisa que la API esté viva → `{ "ok": true }`.
 
 ## Usuarios
 
@@ -22,7 +23,7 @@ Revisa que el contenedor esté vivo → `{ "ok": true }`.
 ### `POST /usuarios`
 Body:
 ```json
-{ "usuario_id": "u1", "nombre": "Nicky", "correo": "nicky@correo.com",
+{ "usuario_id": "u3", "nombre": "Nicky", "correo": "nicky@correo.com",
   "personas": 2, "comidas_por_dia": 3, "meta_calorias": 2000,
   "preferencias": [], "tema": "dark" }
 ```
@@ -38,7 +39,7 @@ Un campo en `null` se borra del usuario (ej. quitar la meta de calorías).
 ### `POST /escaneos`
 Body:
 ```json
-{ "usuario_id": "u1", "personas": 2, "comidas_por_dia": 3,
+{ "usuario_id": "u3", "personas": 2, "comidas_por_dia": 3,
   "ingredientes": [ { "nombre": "huevo", "cantidad": "12 piezas" } ] }
 ```
 El backend pone `fecha` (SK) y genera el menú de la semana con las recetas del recetario.
@@ -70,4 +71,4 @@ Se usa al cambiar un platillo. Body: `{ "dias": [...] }` con los 7 días complet
 1. `escanear_refri.html` → `POST /escaneos` guarda los ingredientes y genera el menú.
 2. `menu.html` → `GET /menus/{usuario_id}/{semana}` muestra los 7 días.
 
-Flujo: S3 (página) → API Gateway → Docker en EC2 → DynamoDB.
+Flujo: página → backend en Node → DynamoDB.

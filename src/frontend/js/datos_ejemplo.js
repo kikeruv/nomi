@@ -1,13 +1,14 @@
 // Datos de ejemplo mientras no conectamos AWS.
 // Tienen la misma forma que las tablas de DynamoDB (Usuarios, Escaneos, Menus, Recetario).
 // Viven solo en memoria: no se guarda nada en el navegador y al recargar la página regresan como estaban.
-// Cuando haya API, se borra este archivo y su <script> en los HTML.
+// Son los mismos datos que carga src/scripts/cargar_datos.py en DynamoDB.
+// Las fotos están en img/recetas/ (dentro del bucket de la página).
 
 const RECETAS_EJEMPLO = [
     {
         receta_id: "r1", categoria: "desayuno", titulo: "Huevos a la mexicana",
         descripcion: "Huevos revueltos con jitomate, cebolla y chile.",
-        tiempo_min: 15, porciones: 2, calorias: 320, proteina_g: 20, carbs_g: 10, grasa_g: 22, imagen_url: "",
+        tiempo_min: 15, porciones: 2, calorias: 320, proteina_g: 20, carbs_g: 10, grasa_g: 22, imagen_url: "img/recetas/r1.jpg",
         ingredientes: [
             { nombre: "Huevo", cantidad: "4 piezas" },
             { nombre: "Jitomate", cantidad: "2 piezas" },
@@ -23,7 +24,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r2", categoria: "desayuno", titulo: "Chilaquiles verdes",
         descripcion: "Totopos bañados en salsa verde con huevo y queso.",
-        tiempo_min: 20, porciones: 2, calorias: 520, proteina_g: 24, carbs_g: 58, grasa_g: 21, imagen_url: "",
+        tiempo_min: 20, porciones: 2, calorias: 520, proteina_g: 24, carbs_g: 58, grasa_g: 21, imagen_url: "img/recetas/r2.jpg",
         ingredientes: [
             { nombre: "Tortilla", cantidad: "8 piezas" },
             { nombre: "Salsa verde", cantidad: "1 taza" },
@@ -40,7 +41,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r3", categoria: "desayuno", titulo: "Avena con plátano",
         descripcion: "Avena cocida en leche con plátano y canela.",
-        tiempo_min: 5, porciones: 1, calorias: 340, proteina_g: 12, carbs_g: 58, grasa_g: 7, imagen_url: "",
+        tiempo_min: 5, porciones: 1, calorias: 340, proteina_g: 12, carbs_g: 58, grasa_g: 7, imagen_url: "img/recetas/r3.jpg",
         ingredientes: [
             { nombre: "Avena", cantidad: "1/2 taza" },
             { nombre: "Leche", cantidad: "1 taza" },
@@ -56,7 +57,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r4", categoria: "comida", titulo: "Pollo con arroz",
         descripcion: "Pechuga de pollo con arroz rojo.",
-        tiempo_min: 35, porciones: 2, calorias: 650, proteina_g: 45, carbs_g: 70, grasa_g: 18, imagen_url: "",
+        tiempo_min: 35, porciones: 2, calorias: 650, proteina_g: 45, carbs_g: 70, grasa_g: 18, imagen_url: "img/recetas/r4.jpg",
         ingredientes: [
             { nombre: "Pollo", cantidad: "400 g" },
             { nombre: "Arroz", cantidad: "1 taza" },
@@ -72,7 +73,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r5", categoria: "comida", titulo: "Tinga de pollo",
         descripcion: "Pollo deshebrado en salsa de jitomate y chipotle.",
-        tiempo_min: 30, porciones: 3, calorias: 590, proteina_g: 38, carbs_g: 45, grasa_g: 26, imagen_url: "",
+        tiempo_min: 30, porciones: 3, calorias: 590, proteina_g: 38, carbs_g: 45, grasa_g: 26, imagen_url: "img/recetas/r5.jpg",
         ingredientes: [
             { nombre: "Pollo", cantidad: "500 g" },
             { nombre: "Jitomate", cantidad: "3 piezas" },
@@ -90,7 +91,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r6", categoria: "comida", titulo: "Pasta con jitomate",
         descripcion: "Pasta corta en salsa de jitomate con queso.",
-        tiempo_min: 25, porciones: 2, calorias: 560, proteina_g: 18, carbs_g: 85, grasa_g: 14, imagen_url: "",
+        tiempo_min: 25, porciones: 2, calorias: 560, proteina_g: 18, carbs_g: 85, grasa_g: 14, imagen_url: "img/recetas/r6.jpg",
         ingredientes: [
             { nombre: "Pasta", cantidad: "200 g" },
             { nombre: "Jitomate", cantidad: "3 piezas" },
@@ -106,7 +107,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r7", categoria: "cena", titulo: "Quesadillas",
         descripcion: "Tortillas de maíz con queso derretido.",
-        tiempo_min: 10, porciones: 1, calorias: 410, proteina_g: 18, carbs_g: 40, grasa_g: 19, imagen_url: "",
+        tiempo_min: 10, porciones: 1, calorias: 410, proteina_g: 18, carbs_g: 40, grasa_g: 19, imagen_url: "img/recetas/r7.jpg",
         ingredientes: [
             { nombre: "Tortilla", cantidad: "3 piezas" },
             { nombre: "Queso", cantidad: "80 g" }
@@ -119,7 +120,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r8", categoria: "cena", titulo: "Molletes",
         descripcion: "Bolillo con frijoles y queso gratinado.",
-        tiempo_min: 15, porciones: 2, calorias: 420, proteina_g: 17, carbs_g: 55, grasa_g: 14, imagen_url: "",
+        tiempo_min: 15, porciones: 2, calorias: 420, proteina_g: 17, carbs_g: 55, grasa_g: 14, imagen_url: "img/recetas/r8.jpg",
         ingredientes: [
             { nombre: "Bolillo", cantidad: "2 piezas" },
             { nombre: "Frijoles", cantidad: "1 taza" },
@@ -134,7 +135,7 @@ const RECETAS_EJEMPLO = [
     {
         receta_id: "r9", categoria: "cena", titulo: "Sopa de verduras",
         descripcion: "Caldo ligero con verduras de temporada.",
-        tiempo_min: 40, porciones: 4, calorias: 260, proteina_g: 8, carbs_g: 35, grasa_g: 9, imagen_url: "",
+        tiempo_min: 40, porciones: 4, calorias: 260, proteina_g: 8, carbs_g: 35, grasa_g: 9, imagen_url: "img/recetas/r9.jpg",
         ingredientes: [
             { nombre: "Calabaza", cantidad: "2 piezas" },
             { nombre: "Zanahoria", cantidad: "2 piezas" },
@@ -151,7 +152,7 @@ const RECETAS_EJEMPLO = [
 
 const USUARIOS_EJEMPLO = {
     u1: {
-        usuario_id: "u1", nombre: "Nicky", correo: "nicky@correo.com",
+        usuario_id: "u1", nombre: "Enrique Ruvalcaba", correo: "enrique@gmail.com",
         personas: 2, comidas_por_dia: 3, dia_escaneo: "domingo", tiempo_max_min: 45,
         meta_calorias: 2000, meta_proteina: 120, preferencias: ["sin_cerdo"], tema: "dark"
     }
