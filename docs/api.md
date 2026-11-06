@@ -3,11 +3,7 @@
 ## Flujo de una petición
 ![Diagrama de la solución](solucion.png)
 
-```
-Página (S3 nomi-page-2026) ─→ API Gateway "nomi" (stage dev)
-                                 ├─ /photos     ─Lambda proxy→ photo_upload_url / get_photo ─→ S3 ─→ Rekognition
-                                 └─ /{proxy+}   ─HTTP proxy→  EC2 nomi-api: contenedor Docker Node :3001 ─→ DynamoDB / S3 nomi-photos (planeado)
-```
+
 Hoy la página llama directo a la EC2 (`http://32.198.178.239:3001`); cuando exista `/{proxy+}` todo pasa por el mismo API Gateway.
 
 ## API Gateway
@@ -22,10 +18,10 @@ Un solo API para todo el proyecto.
 
 | Recurso | Método | Integración | Destino | Request | Response | Estado |
 |---|---|---|---|---|---|---|
-| `/photos` | `POST` | Lambda proxy | `photo_upload_url` | `{ "fileType": "image/jpeg", "userId": "u1" }` | `200 { "url", "clave" }` | ✅ Desplegado |
-| `/photos` | `GET` | Lambda proxy | `get_photo` | `?userId=u1` | `200 { "fotos": [...] }` | ✅ Desplegado |
-| `/photos` | `OPTIONS` | Mock | CORS | — | Headers CORS | ✅ Desplegado |
-| `/{proxy+}` | `ANY` | HTTP proxy | `http://32.198.178.239:3001/{proxy}` | Igual que la API de Nomi | Igual que la API de Nomi | ⏳ Planeado |
+| `/photos` | `POST` | Lambda proxy | `photo_upload_url` | `{ "fileType": "image/jpeg", "userId": "u1" }` | `200 { "url", "clave" }` |  Desplegado |
+| `/photos` | `GET` | Lambda proxy | `get_photo` | `?userId=u1` | `200 { "fotos": [...] }` |  Desplegado |
+| `/photos` | `OPTIONS` | Mock | CORS | — | Headers CORS |  Desplegado |
+| `/{proxy+}` | `ANY` | HTTP proxy | `http://32.198.178.239:3001/{proxy}` | Igual que la API de Nomi | Igual que la API de Nomi |  Planeado |
 
 `/photos` es más específico que `/{proxy+}`, así que las fotos van a la Lambda y el resto (`/usuarios`, `/escaneos`, `/menus`, `/recetas`) a la EC2.
 
@@ -34,19 +30,6 @@ Así queda `config.js` con un solo API:
 API_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev",
 API_REFRI_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos"
 ```
-
-### ¿Por qué un solo API Gateway?
-Una sola URL y un solo stage para la página, un solo lugar para CORS y un diagrama más simple.
-
-### ¿Proxy o no proxy?
-Usamos **proxy** en los dos casos:
-- **EC2 (HTTP proxy):** Express ya valida, arma las respuestas y pone los códigos (400, 404, 409). Un solo recurso `/{proxy+}` manda todas las rutas al contenedor sin repetir cada endpoint en API Gateway ni escribir mapping templates.
-- **Lambda (Lambda proxy):** la Lambda recibe el evento completo (método, query, body) y regresa `statusCode`, headers y body, así decide la respuesta ella misma.
-
-Lo que se pierde: API Gateway no valida el body (lo hace el backend) y no se documentan los recursos uno por uno en la consola.
-
-## API de Nomi (backend en EC2)
-Base actual: `http://32.198.178.239:3001`. Código en `src/backend`. Todas las respuestas son JSON.
 
 | Código | Significado |
 |---|---|

@@ -6,11 +6,6 @@ Nomi usa 4 tablas de DynamoDB (`PAY_PER_REQUEST`) y un bucket privado de S3 para
 
 En DynamoDB solo se declaran las llaves (PK, SK y las del GSI); los demás atributos van en cada item. Las relaciones son lógicas: no hay llaves foráneas y el backend valida que el usuario exista.
 
-```
-Usuarios 1 ──── N Escaneos      (escanea)
-Usuarios 1 ──── N Menus         (planifica)
-Menus    N ──── N Recetario     (en el menú, por receta_id dentro de dias)
-```
 
 ## ¿Por qué DynamoDB y no RDS?
 - Todas las consultas de la app son **por usuario** (su perfil, su último escaneo, su menú de una semana): encajan directo en una PK `usuario_id` con SK, sin JOINs.

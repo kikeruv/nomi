@@ -34,8 +34,3 @@
 ### Diagrama entidad-relación de las 4 tablas
 ![10_modelo_er.png](10_modelo_er.png)
 
-## Faltan
-- Tabla con datos: abrir `usuarios` (o `recetario`) en **Explore items** y tomar captura.
-- `docker logs nomi-api` mostrando las peticiones de la demo.
-- Captura de la respuesta de un `GET` y un `POST` (curl o Postman).
-- API Gateway enfrente de la EC2 (stage `dev`) cuando quede creado.

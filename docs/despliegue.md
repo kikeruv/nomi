@@ -101,11 +101,3 @@ Ya existe: `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos`. 
 3. **Properties → Static website hosting**: índice `index.html`, error `error.html`.
 4. **Permissions**: *Block public access* apagado y bucket policy con `s3:GetObject` público.
 5. Abrir el *Bucket website endpoint* y recargar con **Ctrl + Shift + R**.
-
-## Revisión final
-- [ ] `http://32.198.178.239:3001/recetas` responde las 9 recetas.
-- [ ] Mi semana muestra a Enrique con calorías y los 7 días.
-- [ ] Recetas muestra las fotos.
-- [ ] En Escanear refri, subir una foto aparece en el historial con ingredientes.
-- [ ] Generar menú guarda el escaneo en DynamoDB y lleva a Menú.
-- [ ] Cambiar un platillo se queda al recargar.
