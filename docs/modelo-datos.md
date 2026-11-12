@@ -10,7 +10,7 @@ En DynamoDB solo se declaran las llaves (PK, SK y las del GSI); los demás atrib
 ## ¿Por qué DynamoDB y no RDS?
 - Todas las consultas de la app son **por usuario** (su perfil, su último escaneo, su menú de una semana): encajan directo en una PK `usuario_id` con SK, sin JOINs.
 - El menú es un documento anidado (7 días × 3 comidas). En DynamoDB se guarda como un solo item; en SQL serían 3 tablas y JOINs.
-- Sin servidor que administrar, cobro por petición y sin costo con la app sin uso. Se maneja con permisos IAM (`LabInstanceProfile`), sin usuario y contraseña de base de datos.
+- Sin servidor que administrar, cobro por petición y sin costo con la app sin uso. Se maneja con permisos IAM (`LabRole` en ECS), sin usuario y contraseña de base de datos.
 - Lo que se pierde: no hay JOINs ni consultas libres. Por eso el menú copia título y kcal de la receta (desnormalización) y `recetario` tiene un GSI por categoría.
 
 ## Consultas principales
@@ -38,14 +38,13 @@ Ninguna consulta usa `Scan` salvo `GET /recetas` sin categoría (son 9 recetas).
 | `preferencias` | List | Ej. `["vegetariano", "sin_cerdo"]` |
 | `tema` | String | `auto`, `dark` o `light` |
 
-La contraseña no se guarda aquí; la manejará Cognito (planeado).
+`usuario_id` es el `sub` de Cognito. La contraseña no se guarda aquí: la maneja Cognito.
 
 ### `escaneos` — PK `usuario_id`, SK `fecha`
 | Atributo | Tipo | Descripción |
 |---|---|---|
 | `usuario_id` | String | **PK** |
 | `fecha` | String | **SK**, fecha y hora ISO (`2026-11-01T18:30:00`); ordena los escaneos |
-| `foto` | String | Llave de la foto en S3 |
 | `personas`, `comidas_por_dia` | Number | Con lo que se armó el menú |
 | `ingredientes` | List | `[{ "nombre": "huevo", "cantidad": "12 piezas" }]` |
 
@@ -82,14 +81,15 @@ Título, kcal y macros se copian de `recetario` para pintar la semana con 1 lect
 | Prefijo | Contenido |
 |---|---|
 | `recetas/{receta_id}.jpg` | Foto de cada receta |
-| `escaneos/{usuario_id}/{fecha}.jpg` | Foto del refri |
+| `escaneos/{usuario_id}/{ms}.jpg` | Foto del refri (`usuario_id` = `sub` de Cognito, nombre = fecha en milisegundos) |
+| `escaneos/{usuario_id}/{ms}.json` | `{ "ingredientes": [...] }` que detectó Rekognition |
 
-El backend convierte la llave en una URL firmada (1 h) antes de mandarla a la página.
+Las fotos nunca son públicas: el backend y `ver_fotos` las entregan como URL firmada (1 h), y `subir_foto` da una URL firmada para subir (5 min).
 
 ## Datos de prueba
 ![Tablas en DynamoDB](evidencias/05_dynamodb_tablas.png)
 
-`src/scripts/crear_tablas.py` crea las tablas y `src/scripts/cargar_datos.py` carga 2 usuarios (`u1`, `u2`), un escaneo por usuario, 9 recetas (3 por categoría) y el menú `2026-W45` de cada usuario.
+`src/scripts/crear_tablas.py` crea las tablas y `src/scripts/cargar_datos.py` carga las 9 recetas (3 por categoría) y datos de ejemplo (`u1`, `u2`). Los usuarios reales se crean al registrarse.
 
-## Fotos del refri (API de Alan)
-La foto del refri no pasa por la EC2: la página la sube directo a S3 con una URL firmada que da la Lambda `photo_upload_url`, Rekognition detecta los ingredientes y `get_photo` regresa el historial. Su tabla está en la rama `alan`.
+## Fotos del refri
+No usan tabla: los ingredientes detectados se guardan en un `.json` junto a la foto en S3. Cuando el usuario confirma su lista y genera el menú, el escaneo se guarda en la tabla `escaneos`.

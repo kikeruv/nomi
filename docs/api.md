@@ -1,109 +1,79 @@
 # API
 
-## Flujo de una petición
 ![Diagrama de la solución](solucion.png)
 
 
-Hoy la página llama directo a la EC2 (`http://32.198.178.239:3001`); cuando exista `/{proxy+}` todo pasa por el mismo API Gateway.
-
 ## API Gateway
-Un solo API para todo el proyecto.
-
 | API | Tipo | Stage | Invoke URL |
 |---|---|---|---|
-| `nomi` (`lnkiuphyxj`) | REST | `dev` | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev` |
+| `nomi` (`zj991lzgv6`) | REST | `dev` | `https://zj991lzgv6.execute-api.us-east-1.amazonaws.com/dev` |
 
-### Recursos
-![Recursos en API Gateway](evidencias/01_api_gateway_photos.png)
+| Recurso | Método | Autorización | Integración | Destino |
+|---|---|---|---|---|
+| `/{proxy+}` | `ANY` | Cognito (`cognito-nomi`) | HTTP proxy | `https://no-c4f1289374b3471e960787e255c0b998.ecs.us-east-1.on.aws/{proxy}` |
+| `/{proxy+}` | `OPTIONS` | Ninguna (preflight de CORS) | HTTP proxy | El mismo |
+| `/photos` | `POST` | Cognito (`cognito-nomi`) | Lambda proxy | `subir_foto` |
+| `/photos` | `GET` | Cognito (`cognito-nomi`) | Lambda proxy | `ver_fotos` |
+| `/photos` | `OPTIONS` | Ninguna | Mock (Enable CORS) | — |
 
-| Recurso | Método | Integración | Destino | Request | Response | Estado |
-|---|---|---|---|---|---|---|
-| `/photos` | `POST` | Lambda proxy | `photo_upload_url` | `{ "fileType": "image/jpeg", "userId": "u1" }` | `200 { "url", "clave" }` |  Desplegado |
-| `/photos` | `GET` | Lambda proxy | `get_photo` | `?userId=u1` | `200 { "fotos": [...] }` |  Desplegado |
-| `/photos` | `OPTIONS` | Mock | CORS | — | Headers CORS |  Desplegado |
-| `/{proxy+}` | `ANY` | HTTP proxy | `http://32.198.178.239:3001/{proxy}` | Igual que la API de Nomi | Igual que la API de Nomi |  Planeado |
+`/photos` es más específico que `/{proxy+}`, así que las fotos van a las Lambdas y lo demás a ECS.
 
-`/photos` es más específico que `/{proxy+}`, así que las fotos van a la Lambda y el resto (`/usuarios`, `/escaneos`, `/menus`, `/recetas`) a la EC2.
+- **Authorizer:** revisa el token del header `Authorization` con el User Pool de Cognito. Sin token o con token vencido responde `401`.
+- **Gateway responses (4XX y 5XX):** llevan `Access-Control-Allow-Origin: '*'` para que la página pueda leer el 401 y renovar el token.
+- **¿Por qué proxy?** Express ya tiene las rutas, valida y responde con su código. Con un solo recurso `/{proxy+}` no repetimos cada endpoint en API Gateway. Las Lambdas usan Lambda proxy: reciben el evento completo (con el usuario del token en `requestContext.authorizer.claims.sub`) y arman su respuesta.
 
-Así queda `config.js` con un solo API:
-```js
-API_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev",
-API_REFRI_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos"
-```
+## Sesión
+1. La página inicia sesión con Cognito (`USER_PASSWORD_AUTH`) y recibe un **IdToken** (60 min) y un **RefreshToken** (5 días).
+2. Manda el IdToken en el header `Authorization` en cada petición.
+3. Si la API responde `401`, pide un IdToken nuevo con el RefreshToken y repite la petición.
+4. El backend (`middlewares/sesion.js`) saca el usuario del token (`sub`) y responde `403` si pides datos de otro usuario.
 
+## Códigos
 | Código | Significado |
 |---|---|
 | 200 / 201 | OK / creado |
-| 400 | Faltan datos o son inválidos → `{ "error": "mensaje" }` |
+| 400 | Datos inválidos → `{ "error": "mensaje" }` |
+| 401 | Sin sesión o token vencido |
+| 403 | Datos de otro usuario |
 | 404 | No existe |
 | 409 | Ya existe |
 
-| Método | Ruta | Qué hace | Tabla |
+## Endpoints
+Todos piden sesión. `usuario_id` es el `sub` de Cognito.
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| `GET` | `/usuarios/{usuario_id}` | Perfil |
+| `POST` | `/usuarios` | Crea el perfil (nombre, correo, personas) |
+| `PUT` | `/usuarios/{usuario_id}` | Cambia los campos enviados; `null` borra el campo |
+| `POST` | `/escaneos` | Guarda los ingredientes y arma el menú de la semana |
+| `GET` | `/escaneos/{usuario_id}/ultimo` | Último escaneo |
+| `GET` | `/menus/{usuario_id}/{semana}` | Menú de la semana (`2026-W46`) |
+| `PUT` | `/menus/{usuario_id}/{semana}/{dia}/{tipo}` | Cambia un platillo. Body `{ "receta_id": "r9" }`, `dia` 0 = lunes … 6 = domingo |
+| `GET` | `/recetas?categoria=desayuno` | Recetas (la categoría usa el índice `CategoriaIndex`), ordenadas por lo que tienes en el refri |
+| `GET` | `/recetas/{receta_id}` | Una receta |
+
+### Fotos del refri (Lambdas)
+| Método | Ruta | Qué hace | Respuesta |
 |---|---|---|---|
-| `GET` | `/` | Revisa que la API viva → `{ "ok": true }` | — |
-| `GET` | `/usuarios/{usuario_id}` | Perfil | `usuarios` |
-| `POST` | `/usuarios` | Crea usuario (400 si faltan `usuario_id`, `nombre`, `correo`, `personas`; 409 si existe) | `usuarios` |
-| `PUT` | `/usuarios/{usuario_id}` | Cambia solo los campos enviados; `null` borra el campo | `usuarios` |
-| `POST` | `/escaneos` | Guarda el escaneo y genera el menú de la semana | `escaneos`, `recetario`, `menus` |
-| `GET` | `/escaneos/{usuario_id}/ultimo` | Último escaneo con `foto_url` firmada | `escaneos` |
-| `GET` | `/menus/{usuario_id}/{semana}` | Menú de la semana (`2026-W45`) | `menus` |
-| `PUT` | `/menus/{usuario_id}/{semana}` | Reemplaza el menú (400 si no son 7 días) | `menus` |
-| `GET` | `/recetas?categoria=desayuno` | Recetas (con categoría usa el GSI) con `imagen_url` firmada | `recetario` |
-| `GET` | `/recetas/{receta_id}` | Una receta | `recetario` |
+| `POST` | `/photos` | Crea la llave `escaneos/{sub}/{ms}.jpg` y una URL firmada para subirla (5 min) | `200 { "url", "clave" }` |
+| `GET` | `/photos` | Fotos del usuario, la más nueva primero | `200 { "fotos": [ { "url", "fecha", "ingredientes" } ] }` |
 
-## Caso de uso de punta a punta
-1. `escanear_refri.html`: la foto sube con `POST /photos` + `PUT` a S3 → Rekognition detecta ingredientes → se ven en el historial (`GET /photos`).
-2. El usuario confirma los ingredientes y da **Generar menú** → `POST /escaneos` guarda el escaneo en DynamoDB y crea el menú.
-3. `menu.html` → `GET /menus/u1/2026-W45` pinta los 7 días.
+`ingredientes` es `null` mientras Rekognition sigue procesando la foto.
 
-## Pruebas
-Cuando exista `/{proxy+}`, cambia `API` por `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev`.
-```bash
-API=http://32.198.178.239:3001
-```
+**Subida de la foto:** el JS de la página (`escanear_refri.js`) pide la URL con `POST /photos` y luego hace un `PUT` directo a S3 con esa URL. La foto no pasa por API Gateway ni por la Lambda: la URL firmada solo deja subir ese archivo y vence en 5 minutos. Al llegar la foto, S3 dispara `procesar_foto`, que llama a Rekognition (`DetectLabels`), traduce las etiquetas a español y guarda `{ "ingredientes": [...] }` en un `.json` junto a la foto.
 
-**GET — perfil**
-```bash
-curl $API/usuarios/u1
-```
-```json
-{"usuario_id":"u1","nombre":"Enrique Ruvalcaba","correo":"enrique@gmail.com","personas":2,"comidas_por_dia":3,"dia_escaneo":"domingo","tiempo_max_min":45,"meta_calorias":2000,"meta_proteina":120,"preferencias":["sin_cerdo"],"tema":"dark"}
-```
+Cada receta trae `imagen_url` (URL firmada de S3, 1 hora) y `en_refri` (ingredientes que tienes, o `null` si no has escaneado).
 
-**GET — recetas por categoría (GSI)**
-```bash
-curl "$API/recetas?categoria=desayuno"
-```
-→ `200` con 3 recetas, cada una con `imagen_url` firmada.
+### Lo que valida el backend
+| Endpoint | Validación |
+|---|---|
+| Usuarios | nombre no vacío, correo con `@`, personas ≥ 1, comidas por día de 1 a 3, minutos y metas > 0 |
+| Escaneos | personas ≥ 1, comidas de 1 a 3, al menos un ingrediente, sin nombres vacíos ni repetidos |
+| Cambiar platillo | el día y la comida existen, la receta existe y es de esa comida |
 
-**POST — escaneo que genera el menú**
-```bash
-curl -X POST $API/escaneos -H "Content-Type: application/json" \
-  -d '{"usuario_id":"u1","personas":2,"comidas_por_dia":3,"ingredientes":[{"nombre":"huevo","cantidad":"12 piezas"}]}'
-```
-→ `201` con el escaneo guardado, su `fecha` y `"semana":"2026-W45"`.
+## Caso de uso
+1. **Crear cuenta:** Cognito manda un código al correo → se confirma → `POST /usuarios`.
+2. **Escanear refri:** `POST /photos` → `PUT` de la foto a S3 → Rekognition detecta los ingredientes → `GET /photos` los muestra en el historial → **Usar estos ingredientes** → **Generar menú** → `POST /escaneos`.
+3. **Menú:** `GET /menus/{usuario_id}/{semana}` pinta los 7 días; cambiar un platillo → `PUT /menus/.../{dia}/{tipo}`.
 
-**GET — menú generado**
-```bash
-curl $API/menus/u1/2026-W45
-```
-→ `200 { "usuario_id":"u1", "semana":"2026-W45", "dias":[ 7 días ] }`
-
-**Peticiones mal formadas**
-```bash
-curl -X POST $API/escaneos -H "Content-Type: application/json" -d '{"usuario_id":"u1"}'
-# 400 {"error":"Faltan usuario_id, personas o ingredientes."}
-
-curl $API/usuarios/nadie
-# 404 {"error":"El usuario no existe."}
-```
-
-**API de fotos**
-```bash
-curl -X POST https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos \
-  -H "Content-Type: application/json" -d '{"fileType":"image/jpeg","userId":"u1"}'
-# 200 {"url":"https://...amazonaws.com/...","clave":"..."}
-
-curl "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos?userId=u1"
-# 200 {"fotos":[{"url_foto":"https://...","createdAt":1793900000,"ingredientes":["Egg","Milk"]}]}
-```
