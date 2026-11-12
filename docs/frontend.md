@@ -1,36 +1,36 @@
 # Frontend de Nomi
 
-HTML, CSS y JavaScript sin frameworks. Se publica como sitio estático en el bucket `nomi-page-2026`.
+HTML, CSS y JavaScript sin frameworks, publicado en el bucket `nomi-page-2026`. Solo muestra datos: las validaciones las hacen Cognito y el backend.
 
 ## Archivos comunes
 | Archivo | Qué hace |
 |---|---|
-| `css/tokens.css` | Colores, letras y espacios; tema oscuro y claro (`data-theme`) |
-| `css/estilos.css` | Clases de todas las páginas |
-| `js/tema.js` | Aplica el tema guardado y el botón de sol/luna |
-| `js/config.js` | `API_URL`, `USUARIO_ID` y `API_REFRI_URL` |
-| `js/api.js` | Funciones para llamar a la API de Nomi (`obtenerUsuario`, `guardarEscaneo`, `obtenerMenu`, …) y utilidades (`semanaISO`, `formatoNumero`, `crear`, `ponerAvatar`, …) |
-| `js/semana.js` | Pinta los 7 días del menú (lo usan Mi semana y Menú) |
+| `css/tokens.css` | Colores, letras y espacios; tema oscuro y claro |
+| `css/estilos.css` | Estilos de todas las páginas |
+| `js/config.js` | URL de la API, URL de Cognito y Client ID (no son secretos) |
+| `js/api.js` | Sesión con Cognito (crear cuenta, confirmar, iniciar sesión, renovar token, cerrar sesión), `pedir()` y una función por endpoint |
+| `js/tema.js` | Tema claro u oscuro |
+| `js/semana.js` | Pinta los 7 días del menú (Mi semana y Menú) |
 
-Orden de los `<script>` en cada página: `tema.js` (en `<head>`), luego `config.js`, `api.js` y el JS de la página.
+Orden de los scripts: `tema.js` (en `<head>`), `config.js`, `api.js` y el JS de la página.
+
+## Sesión
+- `iniciarSesion` guarda el IdToken y el RefreshToken en `sessionStorage` (se borran al cerrar la pestaña). Solo se guardan los tokens, no datos del usuario.
+- `pedir()` manda el token en el header `Authorization`. Si la API responde `401`, pide un token nuevo con el RefreshToken y repite la petición; si no se puede, manda al login.
+- El usuario de las páginas sale del token (`sub`). Sin sesión, las páginas mandan al login.
 
 ## Páginas
-| Página | JS | Qué hace | Endpoints |
-|---|---|---|---|
-| `index.html` | — | Inicio público | — |
-| `login.html` | `login.js` | Valida el formulario y entra a Mi semana (sin login real todavía) | — |
-| `crear_cuenta.html` | `crear_cuenta.js` | Crea el usuario (la contraseña no se guarda) | `POST /usuarios` |
-| `dashboard.html` | `dashboard.js` | Calorías de hoy, macros, último escaneo, qué comes hoy y la semana | `GET /usuarios`, `GET /menus`, `GET /escaneos/.../ultimo` |
-| `escanear_refri.html` | `escanear_refri.js` | Sube la foto del refri, muestra el historial con ingredientes detectados, lista de ingredientes y genera el menú | API de fotos `POST`/`GET /photos`, `POST /escaneos` |
-| `menu.html` | `menu.js` | Resumen, 7 días y cambiar un platillo | `GET /menus`, `GET /recetas?categoria=`, `PUT /menus` |
-| `recetas.html` | `recetas.js` | Catálogo con filtros y buscador | `GET /recetas` |
-| `receta.html` | `receta.js` | Detalle de una receta (`?receta_id=`) | `GET /recetas/:id` |
-| `perfil.html` | `perfil.js` | Datos, cómo se arma el menú, preferencias y tema | `GET` y `PUT /usuarios` |
-| `error.html` | — | Página 404 del sitio | — |
+| Página | Qué hace | Llama a |
+|---|---|---|
+| `index.html` | Inicio | — |
+| `login.html` | Inicia sesión; si la cuenta no tiene perfil, le crea uno básico | Cognito, `GET`/`POST /usuarios` |
+| `crear_cuenta.html` | Crea la cuenta, pide el código del correo y guarda el perfil | Cognito, `POST /usuarios` |
+| `dashboard.html` | Calorías de hoy, macros, último escaneo, qué comes hoy y la semana | `/usuarios`, `/menus`, `/escaneos` |
+| `escanear_refri.html` | Sube la foto (pide la URL firmada y hace el `PUT` a S3), muestra el historial con los ingredientes que detectó Rekognition, arma la lista y genera el menú | `POST`/`GET /photos`, S3, `POST /escaneos` |
+| `menu.html` | Resumen, 7 días y cambiar un platillo | `/menus`, `/recetas?categoria=`, `PUT /menus/.../{dia}/{tipo}` |
+| `recetas.html` | Catálogo con filtros y buscador | `/recetas` |
+| `receta.html` | Detalle de una receta | `/recetas/{id}` |
+| `perfil.html` | Datos, cómo se arma el menú, preferencias, tema y cerrar sesión | `GET`/`PUT /usuarios` |
+| `error.html` | Página 404 del sitio | — |
 
-## Sin datos fijos
-Todo sale de la API. Si la API no responde, la página muestra "No pudimos conectar con el servidor". Si un endpoint responde 404 (por ejemplo, no hay menú esa semana), la página muestra un aviso en lugar de un error.
-
-## Notas
-- `USUARIO_ID` es fijo (`u1`) hasta tener Cognito.
-- Todos los `<script>` son normales (sin `type="module"`) para que funcionen también abriendo el archivo con doble clic.
+Si la API responde un error, la página muestra el mensaje que manda el backend o Cognito.
