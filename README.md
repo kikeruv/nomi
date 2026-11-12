@@ -4,78 +4,66 @@ Aplicación web que arma tu menú de la semana a partir de una foto de tu refri:
 
 Proyecto final de **Desarrollo en la Nube** (ITESO).
 
-**Página:** http://nomi-page-2026.s3-website-us-east-1.amazonaws.com
+**Página:** https://nomi-page-2026.s3.us-east-1.amazonaws.com/index.html
 
 ## Integrantes
 | Integrante | Expediente | Parte principal |
 |---|---|---|
-| Alan Alejandro Rodríguez Avalos | 753343 | API de fotos: API Gateway + Lambda + Rekognition |
-| Enrique Alonso Ruvalcaba Martinez | 751600 | Página, backend en EC2, DynamoDB y S3 |
+| Alan Alejandro Rodríguez Avalos | 753343 | Fotos del refri: Lambdas + Rekognition |
+| Enrique Alonso Ruvalcaba Martinez | 751600 | Página, backend en ECS, API Gateway, Cognito, DynamoDB y S3 |
 
 ## Arquitectura
 ![Diagrama de la solución](docs/solucion.png)
 
-```
-                         ┌──────────────────────────────────────────────┐
-Usuario ─→ Página (S3) ──┤ API de Nomi: EC2 + Docker (Node, puerto 3001) ├─→ DynamoDB (usuarios, escaneos, menus, recetario)
-       nomi-page-2026    │                                              └─→ S3 nomi-photos (fotos de recetas, URL firmada)
-                         │
-                         └ API de fotos: API Gateway + Lambda ──→ S3 (foto del refri) ──→ Rekognition (ingredientes)
-```
-
 | Servicio | Para qué se usa |
 |---|---|
-| **S3 `nomi-page-2026`** | Sitio estático: HTML, CSS y JS (público) |
-| **EC2 `nomi-api` + Docker** | Backend en Node/Express. Elastic IP `32.198.178.239`, puerto `3001`. Permisos con `LabInstanceProfile` (sin llaves en el código) |
-| **DynamoDB** | Tablas `usuarios`, `escaneos`, `menus` y `recetario` (ver `docs/modelo-datos.md`) |
-| **S3 `nomi-photos`** | Fotos de las recetas (privado); el backend las entrega como URL firmada |
-| **API Gateway + Lambda** (Alan) | `https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos`: da una URL firmada para subir la foto del refri a S3 y regresa el historial de fotos |
-| **Rekognition** (Alan) | Detecta los ingredientes en la foto del refri |
+| **S3 `nomi-page-2026`** | Sitio estático: HTML, CSS y JS |
+| **Cognito** | Crear cuenta, confirmar con código e iniciar sesión (User Pool, app client `nomi-web`) |
+| **API Gateway `nomi`** | Única entrada a la API (stage `dev`); revisa el token con un authorizer de Cognito, manda `/photos` a las Lambdas y lo demás a ECS con `/{proxy+}` |
+| **ECS Fargate + ECR** | Backend en Node/Express en un contenedor Docker; la imagen vive en ECR |
+| **DynamoDB** | Tablas `usuarios`, `escaneos`, `menus` y `recetario` |
+| **S3 `nomi-photos`** | Bucket privado con dos carpetas: `recetas/` (fotos de las recetas) y `escaneos/` (fotos del refri y sus ingredientes) |
+| **Lambda `subir_foto`** (Python) | `POST /photos`: da una URL firmada para que la página suba la foto a S3 |
+| **Lambda `ver_fotos`** (Python) | `GET /photos`: historial de fotos con los ingredientes detectados |
+| **Lambda `procesar_foto`** (Python) + **Rekognition** | Se activa al llegar una foto a `escaneos/`; detecta los ingredientes y los guarda en un `.json` junto a la foto |
 
 ## Documentación
 | Archivo | Contenido |
 |---|---|
-| `docs/solucion.png` | Diagrama de la solución (desplegado vs planeado) |
-| `docs/api.md` | API Gateway (recursos, stage, Invoke URL, proxy), endpoints y pruebas con curl |
+| `docs/solucion.png` | Diagrama de la solución |
+| `docs/api.md` | API Gateway, sesión con Cognito, endpoints y validaciones |
 | `docs/modelo-datos.md` | Tablas, llaves, consultas principales y por qué DynamoDB |
-| `docs/backend.md` | Cómo está hecho el backend (capas, archivos, menú) |
-| `docs/frontend.md` | Páginas, qué JS usa cada una y a qué endpoints llama |
+| `docs/backend.md` | Cómo está hecho el backend |
+| `docs/frontend.md` | Páginas y qué hace cada JS |
 | `docs/despliegue.md` | Paso a paso para levantar todo en el Learner Lab |
-| `docs/pendientes.md` | Lo que falta y quién lo hace |
-| `docs/evidencias/` | Capturas de API Gateway, EC2, Docker, DynamoDB, S3 y la página |
+| `docs/pendientes.md` | Lo que falta y riesgos |
+| `docs/evidencias/` | Capturas de la consola de AWS |
 
-## Estructura del repositorio
+## Estructura
 ```
 nomi/
-├── docs/                    # Documentación
+├── docs/
 └── src/
-    ├── backend/             # API de Nomi (Node + Express)
-    │   ├── main.js          # Arranca el servidor y junta las rutas
-    │   ├── routes/          # URL → controller
-    │   ├── controllers/     # Valida y responde cada petición
-    │   ├── data/            # Habla con DynamoDB y S3
-    │   ├── utils/menu.js    # Fechas y armado del menú de la semana
-    │   ├── Dockerfile       # Imagen para correr en la EC2
-    │   └── .env             # Configuración (no se sube a git)
-    ├── frontend/            # Página web (se sube a S3)
-    │   ├── *.html           # Una página por pantalla
-    │   ├── css/             # tokens.css (colores y tema) y estilos.css
-    │   └── js/              # config.js, api.js, tema.js, semana.js y un JS por página
+    ├── backend/                 # API de Nomi (Node + Express)
+    │   ├── main.js              # Arranca el servidor y junta las rutas
+    │   ├── routes/              # URL → controller
+    │   ├── middlewares/         # sesion.js: usuario del token de Cognito
+    │   ├── controllers/         # Valida y responde
+    │   ├── data/                # DynamoDB y S3
+    │   ├── utils/menu.js        # Fechas y armado del menú
+    │   └── Dockerfile
+    ├── frontend/                # Página (se sube a S3)
+    │   ├── *.html
+    │   ├── css/
+    │   └── js/                  # config.js, api.js, tema.js, semana.js y un JS por página
+    ├── lambdas/                 # Lambdas de fotos (Python)
+    │   ├── subir_foto/          # POST /photos → URL firmada
+    │   ├── ver_fotos/           # GET /photos → historial
+    │   └── procesar_foto/       # Trigger de S3 → Rekognition
     └── scripts/
-        ├── crear_tablas.py  # Crea las tablas de DynamoDB
-        └── cargar_datos.py  # Carga los datos de prueba
+        ├── crear_tablas.py      # Crea las tablas de DynamoDB
+        └── cargar_datos.py      # Carga las recetas y datos de prueba
 ```
-
-## Configuración de la página
-`src/frontend/js/config.js`:
-```js
-const CONFIG = {
-    API_URL: "http://32.198.178.239:3001",   // API de Nomi (EC2)
-    USUARIO_ID: "u1",                         // Usuario fijo hasta tener Cognito
-    API_REFRI_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos"  // API de fotos
-};
-```
-Para probar con el backend en tu compu, cambia `API_URL` a `http://localhost:3000`.
 
 ## Correrlo en tu compu
 1. Copia las credenciales del Learner Lab (**AWS Details → AWS CLI**) a `~/.aws/credentials`.
@@ -92,24 +80,13 @@ Para probar con el backend en tu compu, cambia `API_URL` a `http://localhost:300
    npm install
    node main.js
    ```
-4. En `config.js` pon `API_URL: "http://localhost:3000"` y abre `src/frontend/index.html`.
+4. En `src/frontend/js/config.js` cambia `API_URL` a `http://localhost:3000` y abre `src/frontend/index.html`. El login sigue siendo con Cognito.
 
 ## Subirlo a la nube
-Resumen (detalle en `docs/despliegue.md`):
-1. DynamoDB: `python crear_tablas.py` y `python cargar_datos.py`.
-2. Fotos de recetas en `s3://nomi-photos/recetas/r1.jpg … r9.jpg`.
-3. EC2 con Docker corriendo el backend en el puerto 3001 y Elastic IP.
-4. Página:
-   ```
-   aws s3 rm s3://nomi-page-2026 --recursive
-   aws s3 cp src/frontend s3://nomi-page-2026 --recursive
-   ```
-
-## Problemas comunes
-| Síntoma | Causa | Solución |
-|---|---|---|
-| `AccessDeniedException ... voc-cancel-cred` | Se acabó la sesión del Learner Lab | Start Lab y copiar las credenciales nuevas a `~/.aws/credentials`; reiniciar `node main.js` |
-| "No pudimos conectar con el servidor" | La EC2 está apagada o el contenedor no corre | Prender la EC2 y revisar `docker ps` |
-| "CONFIG is not defined" | `config.js` tiene un error de sintaxis (por ejemplo `export`) | `config.js` debe ser un `<script>` normal, sin `export` |
-| Error de CORS al subir la foto | La API o el bucket de fotos de Alan no aceptan el origen de la página | Configurar CORS en su API Gateway y en su bucket |
-| La página no muestra los cambios | El navegador usa la versión guardada | Recargar con **Ctrl + Shift + R** |
+Detalle en `docs/despliegue.md`:
+1. DynamoDB: `crear_tablas.py` y `cargar_datos.py`.
+2. Fotos de recetas en `s3://nomi-photos/recetas/`.
+3. Imagen del backend a ECR y servicio en ECS.
+4. Cognito y API Gateway con su authorizer.
+5. Lambdas de fotos y trigger de S3.
+6. Página: `aws s3 sync src/frontend s3://nomi-page-2026 --delete`.
