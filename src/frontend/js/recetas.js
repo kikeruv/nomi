@@ -1,10 +1,12 @@
-// Primero muestra las que más ingredientes tienen en tu refri (último escaneo)
+// Usuario del token (sin sesión manda al login)
+const USUARIO_ID = pedirSesion();
+
+// Recetas (el backend las manda ordenadas por lo que tienes en el refri)
 
 const NOMBRE_CATEGORIA = { desayuno: "Desayuno", comida: "Comida", cena: "Cena" };
 const LIMITE_KCAL = 500;
 
 let recetas = [];
-let escaneo = null;
 let soloLigeras = false;
 
 const contenedor = document.getElementById("lista-recetas");
@@ -12,14 +14,12 @@ const buscador = document.getElementById("buscador");
 const enlaceLigeras = document.getElementById("solo-caben");
 
 function crearTarjeta(receta) {
-    const enRefri = ingredientesEnRefri(receta, escaneo);
-
     const tarjeta = crear("a", "tarjeta");
     tarjeta.href = `receta.html?receta_id=${encodeURIComponent(receta.receta_id)}`;
     tarjeta.style.color = "inherit";
     tarjeta.style.textDecoration = "none";
 
-    // Foto de S3 (URL firmada) o el círculo vacío
+    // Foto o círculo vacío
     const imagen = crear("div", "imagen-receta");
     if (receta.imagen_url) {
         const img = crear("img");
@@ -32,12 +32,13 @@ function crearTarjeta(receta) {
     }
 
     let detalle = `${receta.tiempo_min} min`;
-    if (escaneo) detalle += ` · ${enRefri.tengo} de ${enRefri.total} en tu refri`;
+    // en_refri lo calcula el backend (null si no has escaneado)
+    if (receta.en_refri) detalle += ` · ${receta.en_refri.length} de ${receta.ingredientes.length} en tu refri`;
 
     const datos = crear("p");
     datos.style.cssText = "display: flex; gap: 8px; align-items: center; flex-wrap: wrap";
     datos.appendChild(crear("span", "kcal", `${formatoNumero(receta.calorias)} kcal / porción`));
-    if (enRefri.total > 0 && enRefri.tengo === enRefri.total) {
+    if (receta.en_refri && receta.en_refri.length === receta.ingredientes.length) {
         datos.appendChild(crear("span", "chip", "Usa tu refri"));
     } else {
         datos.appendChild(crear("span", "chip", NOMBRE_CATEGORIA[receta.categoria] || receta.categoria));
@@ -56,8 +57,7 @@ function pintarRecetas() {
                 (receta.ingredientes || []).some((ingrediente) => normalizar(ingrediente.nombre).includes(busqueda));
             const ligera = !soloLigeras || Number(receta.calorias) < LIMITE_KCAL;
             return coincide && ligera;
-        })
-        .sort((a, b) => ingredientesEnRefri(b, escaneo).tengo - ingredientesEnRefri(a, escaneo).tengo);
+        });
 
     contenedor.innerHTML = "";
     if (lista.length === 0) {
@@ -95,7 +95,7 @@ document.querySelectorAll(".filtro").forEach((boton) => {
 // Buscador: filtra mientras escribes
 buscador.addEventListener("input", pintarRecetas);
 
-// "Menos de 500 kcal" funciona como interruptor
+// Botón "Menos de 500 kcal"
 enlaceLigeras.addEventListener("click", (evento) => {
     evento.preventDefault();
     soloLigeras = !soloLigeras;
@@ -103,18 +103,8 @@ enlaceLigeras.addEventListener("click", (evento) => {
     pintarRecetas();
 });
 
-// El escaneo solo sirve para ordenar; si falla, las recetas se muestran igual
 async function iniciar() {
-    try {
-        const [usuario, ultimo] = await Promise.all([
-            obtenerUsuario(CONFIG.USUARIO_ID),
-            obtenerUltimoEscaneo(CONFIG.USUARIO_ID)
-        ]);
-        ponerAvatar(usuario);
-        escaneo = ultimo;
-    } catch (error) {
-        escaneo = null;
-    }
+    ponerAvatar(await obtenerUsuario(USUARIO_ID));
     cargarRecetas("todas");
 }
 

@@ -7,7 +7,7 @@ async function guardar(escaneo) {
     await dynamo.send(new PutCommand({ TableName: TABLA, Item: escaneo }));
 }
 
-// El más reciente: query por usuario, de la fecha más nueva a la más vieja, solo 1
+// El más reciente: ordena por fecha de mayor a menor y toma 1
 async function obtenerUltimo(usuarioId) {
     const resultado = await dynamo.send(new QueryCommand({
         TableName: TABLA,

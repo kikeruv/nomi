@@ -29,7 +29,7 @@
         </div>
     </nav>
 
-    <!-- js/perfil.js llena el formulario con GET /usuarios/{id} y guarda con PUT -->
+    <!-- Lo llena js/perfil.js -->
     <main class="contenedor contenido-pagina" style="max-width: 880px">
 
         <div style="display: flex; align-items: center; gap: var(--espacio-medio)">
@@ -40,7 +40,7 @@
             </div>
         </div>
 
-        <!-- Los ids son los nombres de la tabla Usuarios -->
+        <!-- Ids = campos de la tabla Usuarios -->
         <form id="formulario-perfil" novalidate>
 
             <div class="tarjeta" style="margin-top: var(--espacio-lateral)">
@@ -50,12 +50,10 @@
                     <div class="campo" id="campo-nombre">
                         <label for="nombre">Nombre</label>
                         <input class="entrada" id="nombre" autocomplete="name">
-                        <small></small>
                     </div>
                     <div class="campo" id="campo-correo">
                         <label for="correo">Correo</label>
                         <input class="entrada" id="correo" type="email" autocomplete="email">
-                        <small></small>
                     </div>
                 </div>
             </div>
@@ -67,7 +65,6 @@
                     <div class="campo" id="campo-personas">
                         <label for="personas">Personas</label>
                         <input class="entrada" id="personas" type="number" min="1" inputmode="numeric">
-                        <small></small>
                     </div>
                     <div class="campo" id="campo-comidas_por_dia">
                         <label for="comidas_por_dia">Comidas por día</label>
@@ -76,7 +73,6 @@
                             <option value="2">2 comidas</option>
                             <option value="3">3 (desayuno, comida y cena)</option>
                         </select>
-                        <small></small>
                     </div>
                     <div class="campo" id="campo-dia_escaneo">
                         <label for="dia_escaneo">Día de escanear tu refri</label>
@@ -89,22 +85,19 @@
                             <option value="sabado">Sábado</option>
                             <option value="domingo">Domingo</option>
                         </select>
-                        <small></small>
                     </div>
                     <div class="campo" id="campo-tiempo_max_min">
                         <label for="tiempo_max_min">Tiempo máximo por comida (min)</label>
                         <input class="entrada" id="tiempo_max_min" type="number" min="5" step="5" inputmode="numeric">
-                        <small></small>
                     </div>
                     <div class="campo" id="campo-meta">
                         <label for="meta">Meta diaria de calorías</label>
                         <input class="entrada" id="meta" type="number" min="1" placeholder="kcal" inputmode="numeric">
-                        <small data-ayuda="Opcional. Si la dejas vacía, solo verás las kcal sin la barra.">Opcional. Si la dejas vacía, solo verás las kcal sin la barra.</small>
+                        <small>Opcional. Si la dejas vacía, solo verás las kcal sin la barra.</small>
                     </div>
                     <div class="campo" id="campo-meta_proteina">
                         <label for="meta_proteina">Meta de proteína (g)</label>
                         <input class="entrada" id="meta_proteina" type="number" min="1" inputmode="numeric">
-                        <small></small>
                     </div>
                 </div>
             </div>
@@ -112,7 +105,6 @@
             <div class="tarjeta" style="margin-top: var(--espacio-medio)">
                 <span class="etiqueta">Apariencia</span>
                 <h3 style="margin-top: var(--espacio-chico)">Tema de la app</h3>
-                <!-- data-tema es lo que recibe elegirTema() de js/tema.js -->
                 <div class="selector" id="selector-tema" role="radiogroup" style="margin-top: var(--espacio-medio)">
                     <button type="button" role="radio" data-tema="auto" aria-checked="false">Automático</button>
                     <button type="button" role="radio" data-tema="dark" aria-checked="false">Oscuro</button>
@@ -124,7 +116,6 @@
             <div class="tarjeta" style="margin-top: var(--espacio-medio)">
                 <span class="etiqueta">Preferencias</span>
                 <h3 style="margin-top: var(--espacio-chico)">Qué no quieres en tu menú</h3>
-                <!-- value = lo que se guarda en la lista "preferencias" de Usuarios -->
                 <div id="preferencias" style="margin-top: var(--espacio-chico)">
                     <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="vegetariano"> Vegetariano</label></div>
                     <div class="fila-ingrediente"><label><input type="checkbox" name="preferencias" value="sin_cerdo"> Sin carne de cerdo</label></div>
@@ -136,8 +127,8 @@
             <div class="mensaje" id="resultado" hidden></div>
 
             <div class="encabezado-pagina" style="margin-top: var(--espacio-tarjeta)">
-                <a class="boton boton-secundario" href="index.html">Cerrar sesión</a>
-                <button class="boton boton-principal" type="submit">Guardar cambios</button>
+                <button class="boton boton-secundario boton-ancho" id="boton-cerrar-sesion" type="button">Cerrar sesión</button>
+                <button class="boton boton-principal boton-ancho" type="submit">Guardar cambios</button>
             </div>
         </form>
     </main>

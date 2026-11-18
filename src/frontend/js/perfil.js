@@ -1,21 +1,10 @@
-// Perfil: carga con GET /usuarios/{id} y guarda con PUT /usuarios/{id}
-// El tema se cambia al momento con elegirTema() de js/tema.js
+// Usuario del token (sin sesión manda al login)
+const USUARIO_ID = pedirSesion();
+
+// Perfil: carga y guarda los datos del usuario
 
 const formulario = document.getElementById("formulario-perfil");
 const resultado = document.getElementById("resultado");
-
-function mostrarError(idCampo, mensaje) {
-    const campo = document.getElementById(idCampo);
-    campo.classList.add("campo-error");
-    campo.querySelector("small").textContent = mensaje;
-}
-
-function quitarError(idCampo) {
-    const campo = document.getElementById(idCampo);
-    const ayuda = campo.querySelector("small");
-    campo.classList.remove("campo-error");
-    ayuda.textContent = ayuda.dataset.ayuda || ""; 
-}
 
 function mostrarMensaje(tipo, texto) {
     resultado.className = `mensaje mensaje-${tipo}`;
@@ -23,11 +12,9 @@ function mostrarMensaje(tipo, texto) {
     resultado.hidden = false;
 }
 
-// Vacío = no se llenó; si no, tiene que ser entero mayor a 0
-function enteroOpcional(texto) {
-    if (texto.trim() === "") return { valido: true, valor: null };
-    const numero = Number(texto);
-    return { valido: Number.isInteger(numero) && numero > 0, valor: numero };
+// Vacío = null (el backend lo borra)
+function numeroOpcional(texto) {
+    return texto.trim() === "" ? null : Number(texto);
 }
 
 function pintarEncabezado(nombre, correo) {
@@ -52,7 +39,7 @@ botonesTema.forEach((boton) => {
     });
 });
 
-// Si cambian el tema con el sol y la luna, el selector se actualiza
+// Si cambian el tema con el botón, se actualiza el selector
 document.getElementById("boton-tema").addEventListener("click", () => marcarTema(leerPreferenciaTema()));
 
 marcarTema(leerPreferenciaTema());
@@ -65,7 +52,7 @@ function ponerValor(id, valor) {
 
 async function cargarPerfil() {
     try {
-        const usuario = await obtenerUsuario(CONFIG.USUARIO_ID);
+        const usuario = await obtenerUsuario(USUARIO_ID);
         if (!usuario) {
             mostrarMensaje("error", "No encontramos tu perfil.");
             return;
@@ -86,7 +73,7 @@ async function cargarPerfil() {
             casilla.checked = preferencias.includes(casilla.value);
         });
 
-        // El tema guardado en la cuenta manda sobre el del navegador
+        // Usa el tema guardado en la cuenta
         if (usuario.tema) {
             elegirTema(usuario.tema);
             marcarTema(usuario.tema);
@@ -104,49 +91,21 @@ formulario.addEventListener("submit", async (evento) => {
 
     const nombre = document.getElementById("nombre").value.trim();
     const correo = document.getElementById("correo").value.trim();
-    const personas = enteroOpcional(document.getElementById("personas").value);
-    const tiempo = enteroOpcional(document.getElementById("tiempo_max_min").value);
-    const meta = enteroOpcional(document.getElementById("meta").value);
-    const proteina = enteroOpcional(document.getElementById("meta_proteina").value);
+    const personas = numeroOpcional(document.getElementById("personas").value);
+    const tiempo = numeroOpcional(document.getElementById("tiempo_max_min").value);
+    const meta = numeroOpcional(document.getElementById("meta").value);
+    const proteina = numeroOpcional(document.getElementById("meta_proteina").value);
 
-    let valido = true;
-
-    if (!nombre) {
-        mostrarError("campo-nombre", "Escribe tu nombre.");
-        valido = false;
-    }
-    if (!correo.includes("@")) {
-        mostrarError("campo-correo", "Revisa tu correo, le falta la @.");
-        valido = false;
-    }
-    if (!personas.valido || personas.valor === null) {
-        mostrarError("campo-personas", "Escribe al menos 1 persona.");
-        valido = false;
-    }
-    if (!tiempo.valido) {
-        mostrarError("campo-tiempo_max_min", "Escribe los minutos.");
-        valido = false;
-    }
-    if (!meta.valido) {
-        mostrarError("campo-meta", "Escribe un número mayor a 0 o déjalo vacío.");
-        valido = false;
-    }
-    if (!proteina.valido) {
-        mostrarError("campo-meta_proteina", "Escribe un número mayor a 0 o déjalo vacío.");
-        valido = false;
-    }
-    if (!valido) return;
-
-    // Los nombres son los mismos de la tabla Usuarios
+    // Mismos nombres que la tabla Usuarios
     const cambios = {
         nombre: nombre,
         correo: correo,
-        personas: personas.valor,
+        personas: personas,
         comidas_por_dia: Number(document.getElementById("comidas_por_dia").value),
         dia_escaneo: document.getElementById("dia_escaneo").value,
-        tiempo_max_min: tiempo.valor,
-        meta_calorias: meta.valor,
-        meta_proteina: proteina.valor,
+        tiempo_max_min: tiempo,
+        meta_calorias: meta,
+        meta_proteina: proteina,
         preferencias: [...document.querySelectorAll('input[name="preferencias"]:checked')].map((casilla) => casilla.value),
         tema: leerPreferenciaTema()
     };
@@ -155,7 +114,7 @@ formulario.addEventListener("submit", async (evento) => {
     boton.disabled = true;
 
     try {
-        await actualizarUsuario(CONFIG.USUARIO_ID, cambios);
+        await actualizarUsuario(USUARIO_ID, cambios);
         pintarEncabezado(nombre, correo);
         mostrarMensaje("exito", "Listo, guardamos tus cambios.");
     } catch (error) {
@@ -165,10 +124,7 @@ formulario.addEventListener("submit", async (evento) => {
     }
 });
 
-// Quita el error en cuanto la persona corrige el campo
-["nombre", "correo", "personas", "tiempo_max_min", "meta", "meta_proteina"].forEach((id) => {
-    const idCampo = id === "meta" ? "campo-meta" : `campo-${id}`;
-    document.getElementById(id).addEventListener("input", () => quitarError(idCampo));
-});
+// Cerrar sesión
+document.getElementById("boton-cerrar-sesion").addEventListener("click", cerrarSesion);
 
 cargarPerfil();

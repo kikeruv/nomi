@@ -29,7 +29,7 @@
         </div>
     </nav>
 
-    <!-- Todo lo que dice "—" lo llena js/dashboard.js con la API -->
+    <!-- Lo llena js/dashboard.js -->
     <main class="contenedor contenido-pagina">
 
         <span class="etiqueta" id="fecha-hoy"></span>
@@ -37,7 +37,7 @@
 
         <div class="cuadricula-resumen">
 
-            <!-- Calorías de hoy (suma del menú de hoy) -->
+            <!-- Calorías de hoy -->
             <div class="tarjeta">
                 <div class="encabezado-pagina" style="align-items: baseline">
                     <h3>Calorías de hoy</h3>
@@ -76,7 +76,6 @@
                 </div>
                 <span class="kcal" id="kcal-hoy"></span>
             </div>
-            <!-- Una .comida-hoy por desayuno, comida y cena -->
             <div class="comidas-hoy" id="comidas-hoy"></div>
         </section>
 
@@ -89,10 +88,9 @@
                 </div>
                 <a class="boton boton-secundario boton-chico" href="menu.html">Ver menú completo</a>
             </div>
-            <!-- Un .dia por cada día de la semana -->
             <div class="semana" id="semana" style="margin-top: var(--espacio-lateral)"></div>
 
-            <!-- Se muestra si todavía no hay menú esta semana -->
+            <!-- Si no hay menú -->
             <div class="tarjeta" id="sin-menu" hidden style="margin-top: var(--espacio-lateral)">
                 <h3>Todavía no tienes menú esta semana</h3>
                 <p>Escanea tu refri y armamos tus 7 días.</p>

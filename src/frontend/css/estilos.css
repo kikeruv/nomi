@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap");
 
-
 /* ---------- Base ---------- */
 * { box-sizing: border-box; }
 
@@ -25,7 +24,6 @@ body {
     outline: 2px solid var(--color-verde-texto);
     outline-offset: 2px;
 }
-
 
 /* ---------- Barra de navegación ---------- */
 .barra-navegacion {
@@ -79,7 +77,6 @@ body {
     color: var(--color-texto);
 }
 
-
 /* ---------- Botones ---------- */
 .boton {
     display: inline-flex;
@@ -109,8 +106,10 @@ body {
 
 .boton-chico { height: 36px; font-size: 14px; }
 
-.boton[disabled] { opacity: 0.6; cursor: progress; }
+/* Botones del mismo ancho (ej. Perfil) */
+.boton-ancho { min-width: 180px; justify-content: center; }
 
+.boton[disabled] { opacity: 0.6; cursor: progress; }
 
 /* ---------- Etiquetas y chips ---------- */
 .etiqueta {
@@ -128,7 +127,6 @@ body {
     background: var(--color-superficie-elevada);
     color: var(--color-texto-suave);
 }
-.chip-aviso { color: var(--color-aviso); }
 
 .kcal {
     font: 500 13px/20px var(--letra-numeros);
@@ -140,7 +138,6 @@ body {
     text-decoration: none;
     font-weight: 500;
 }
-
 
 /* ---------- Tarjetas ---------- */
 .tarjeta {
@@ -162,7 +159,6 @@ body {
     line-height: 20px;
     color: var(--color-texto-suave);
 }
-
 
 /* ---------- Formularios ---------- */
 .campo {
@@ -194,9 +190,6 @@ body {
     color: var(--color-texto-suave);
 }
 
-.campo-error .entrada { border-color: var(--color-error); }
-.campo-error small { color: var(--color-error); }
-
 .mensaje {
     margin-top: var(--espacio-medio);
     padding: var(--espacio-medio);
@@ -207,7 +200,6 @@ body {
 }
 .mensaje-exito { border-color: var(--color-verde-texto); }
 .mensaje-error { border-color: var(--color-error); color: var(--color-error); }
-
 
 /* ---------- Filtros (píldoras) ---------- */
 .filtros {
@@ -232,7 +224,6 @@ body {
     color: var(--color-fondo);
     border-color: var(--color-texto);
 }
-
 
 /* ---------- Estructura de página ---------- */
 .contenedor {
@@ -300,7 +291,6 @@ body {
 }
 .pie-pagina .logo { font-size: 18px; }
 
-
 /* ---------- Inicio: portada ---------- */
 .portada {
     display: grid;
@@ -348,7 +338,6 @@ body {
 }
 .bloque-final .grupo-botones { justify-content: center; }
 
-
 /* ---------- Foto y detección ---------- */
 .caja-prueba {
     background: var(--color-superficie);
@@ -372,25 +361,6 @@ body {
     font-size: 14px;
 }
 
-.zona-foto-vacia {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: var(--espacio-chico);
-}
-
-.icono-subir {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 2px solid var(--color-borde-fuerte);
-    display: grid;
-    place-items: center;
-    font: 500 24px/1 var(--letra-numeros);
-    color: var(--color-texto-suave);
-}
-
 .plato {
     width: 132px;
     height: 132px;
@@ -407,42 +377,11 @@ body {
     background: var(--color-borde);
 }
 
-.recuadro-deteccion {
-    position: absolute;
-    inset: 36px 120px;
-    border: 2px solid var(--color-verde-texto);
-    border-radius: var(--borde-chico);
-}
-.recuadro-deteccion span {
-    position: absolute;
-    top: -24px;
-    left: -2px;
-    padding: 2px 6px;
-    border-radius: var(--borde-chico);
-    background: var(--color-verde);
-    color: var(--color-texto-sobre-verde);
-    font: 500 12px/16px var(--letra-numeros);
-}
-
 .resultado {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     margin-top: var(--espacio-medio);
-}
-
-.nombre-platillo {
-    margin-top: var(--espacio-mini);
-    font: 600 22px/28px var(--letra-titulos);
-}
-
-.calorias-grande {
-    font: 500 32px/36px var(--letra-numeros);
-    color: var(--color-verde-texto);
-}
-.calorias-grande span {
-    font-size: 14px;
-    color: var(--color-texto-suave);
 }
 
 .macros {
@@ -469,7 +408,6 @@ body {
     font-weight: 500;
     white-space: nowrap;
 }
-
 
 /* ---------- Recetas ---------- */
 .imagen-receta {
@@ -541,7 +479,6 @@ body {
     color: var(--color-verde-texto);
 }
 
-
 /* ---------- Dashboard ---------- */
 .cuadricula-resumen {
     display: grid;
@@ -592,22 +529,6 @@ body {
 .macro .barra-progreso { height: 6px; margin-top: 8px; }
 .macro .barra-progreso i { background: var(--color-texto-suave); }
 
-.fila-comida {
-    display: flex;
-    justify-content: space-between;
-    padding: var(--espacio-medio) 0;
-    border-bottom: 1px solid var(--color-borde);
-    font-size: 14px;
-}
-.fila-comida:last-child { border-bottom: 0; }
-.fila-comida small {
-    display: block;
-    margin-top: 2px;
-    font: 400 12px/16px var(--letra-numeros);
-    color: var(--color-texto-suave);
-}
-
-
 /* ---------- Historial ---------- */
 .dato {
     margin-top: var(--espacio-chico);
@@ -616,19 +537,6 @@ body {
 .dato small {
     font-size: 14px;
     color: var(--color-texto-suave);
-}
-
-.grafica { margin-top: var(--espacio-medio); }
-.grafica text {
-    font: 400 12px var(--letra-numeros);
-    fill: var(--color-texto-suave);
-}
-.barra-grafica { fill: var(--color-borde-fuerte); }
-.barra-hoy { fill: var(--color-verde-texto); }
-.linea-meta {
-    stroke: var(--color-aviso);
-    stroke-width: 1;
-    stroke-dasharray: 4 4;
 }
 
 .tabla {
@@ -654,7 +562,6 @@ body {
     text-align: right;
     font-family: var(--letra-numeros);
 }
-
 
 /* ---------- Iniciar sesión / Crear cuenta ---------- */
 .pantalla-acceso {
@@ -683,21 +590,6 @@ body {
     gap: var(--espacio-medio);
 }
 
-.separador {
-    display: flex;
-    align-items: center;
-    gap: var(--espacio-medio);
-    font-size: 13px;
-    color: var(--color-texto-suave);
-}
-.separador::before,
-.separador::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--color-borde);
-}
-
 .titulo-acceso {
     margin: var(--espacio-medio) 0 0;
     font: 600 44px/48px var(--letra-titulos);
@@ -713,11 +605,6 @@ body {
 .boton-completo {
     width: 100%;
     justify-content: center;
-}
-
-.enlace-derecha {
-    align-self: flex-end;
-    font-size: 14px;
 }
 
 .logo-celular { display: none; }
@@ -736,7 +623,6 @@ body {
     text-align: center;
 }
 
-
 /* ---------- Celular ---------- */
 @media (max-width: 860px) {
     .barra-navegacion { gap: var(--espacio-medio); padding: 0 var(--espacio-medio); }
@@ -754,13 +640,11 @@ body {
     .acceso-lado { display: none; }
     .logo-celular { display: block; margin-bottom: var(--espacio-medio); }
     .acceso-formulario { padding: var(--espacio-lateral) var(--espacio-medio); }
-    .recuadro-deteccion { inset: 36px 22%; }
     .encabezado-pagina { flex-direction: column; align-items: flex-start; }
 
     .titulo-portada { font-size: 40px; line-height: 44px; }
     .titulo-seccion { font-size: 28px; line-height: 34px; }
 }
-
 
 /* =========================================================
    NUEVO DISEÑO: refri, ingredientes, menú semanal y tema
@@ -772,7 +656,6 @@ body {
     align-items: center;
     gap: 12px;
 }
-
 
 /* ---------- Botón de tema (sol / luna) ---------- */
 .boton-tema {
@@ -820,7 +703,6 @@ body {
     box-shadow: inset 0 0 0 1px var(--color-borde-fuerte);
 }
 
-
 /* ---------- Pantallas de acceso con botón de tema arriba ---------- */
 .acceso-principal {
     display: flex;
@@ -832,7 +714,6 @@ body {
     padding: var(--espacio-lateral) var(--espacio-lateral) 0;
 }
 
-
 /* ---------- Refri escaneado ---------- */
 .refri {
     position: relative;
@@ -841,38 +722,6 @@ body {
     border-radius: var(--borde-medio);
     border: 1px solid var(--color-borde-fuerte);
     background: var(--color-superficie-elevada);
-}
-
-.refri-repisa {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--color-borde-fuerte);
-}
-
-.refri-producto {
-    position: absolute;
-    border-radius: var(--borde-chico);
-    background: var(--color-borde);
-}
-
-/* Recuadro de cada ingrediente detectado con su etiqueta */
-.refri-deteccion {
-    position: absolute;
-    border: 2px solid var(--color-verde-texto);
-    border-radius: var(--borde-chico);
-}
-.refri-deteccion span {
-    position: absolute;
-    top: -22px;
-    left: -2px;
-    padding: 2px 6px;
-    white-space: nowrap;
-    border-radius: var(--borde-chico);
-    background: var(--color-verde);
-    color: var(--color-texto-sobre-verde);
-    font: 500 11px/14px var(--letra-numeros);
 }
 
 /* Foto vacía con cámara (Dashboard) */
@@ -885,7 +734,6 @@ body {
     background: var(--color-superficie-elevada);
     color: var(--color-verde-texto);
 }
-
 
 /* ---------- Ingredientes con casilla ---------- */
 .fila-ingrediente {
@@ -925,13 +773,11 @@ body {
     color: var(--color-texto-sobre-verde);
 }
 
-
 /* ---------- Tiempo ---------- */
 .tiempo {
     font: 500 13px/20px var(--letra-numeros);
     color: var(--color-verde-texto);
 }
-
 
 /* ---------- Qué comes hoy ---------- */
 .comidas-hoy {
@@ -956,7 +802,6 @@ body {
     font-size: 13px;
     color: var(--color-texto-suave);
 }
-
 
 /* ---------- Menú de la semana (7 días) ---------- */
 .semana {
@@ -1012,7 +857,6 @@ body {
     font-weight: 500;
     color: var(--color-texto);
 }
-
 
 /* ---------- Cambiar un platillo ---------- */
 .boton-cambiar {
@@ -1094,7 +938,6 @@ body {
     border-top: 1px solid var(--color-borde);
 }
 
-
 /* ---------- Celular (nuevo diseño) ---------- */
 @media (max-width: 860px) {
     .semana,
@@ -1127,7 +970,6 @@ body {
 .foto-refri.con-foto { border-style: solid; }
 .portada .foto-refri { height: 260px; }
 
-
 /* ---------- Casillas de Preferencias (Perfil) ---------- */
 .fila-ingrediente input[type="checkbox"] {
     width: 18px;
@@ -1135,7 +977,6 @@ body {
     margin: 0;
     accent-color: var(--color-verde);
 }
-
 
 /* ---------- Página de error 404 ---------- */
 .pantalla-error {
@@ -1178,7 +1019,6 @@ body {
     .pantalla-error { grid-template-columns: 1fr; gap: var(--espacio-lateral); padding: var(--espacio-lateral) 0; }
     .codigo-error { font-size: 96px; }
 }
-
 
 /* ---------- Fotos de recetas (de S3) ---------- */
 /* Todas del mismo tamaño: la foto se recorta para llenar el recuadro */

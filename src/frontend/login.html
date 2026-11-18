@@ -39,22 +39,24 @@
                 <div class="campo" id="campo-correo">
                     <label for="correo">Correo</label>
                     <input class="entrada" id="correo" type="email" placeholder="tu@correo.com" autocomplete="email">
-                    <small></small>
                 </div>
 
                 <div class="campo" id="campo-contrasena">
                     <label for="contrasena">Contraseña</label>
                     <input class="entrada" id="contrasena" type="password" autocomplete="current-password">
-                    <small></small>
                 </div>
 
                 <button class="boton boton-principal boton-completo" type="submit">Iniciar sesión</button>
+
+                <div class="mensaje" id="resultado" hidden></div>
 
                 <p class="texto-centro">¿No tienes cuenta? <a class="enlace" href="crear_cuenta.html">Crear cuenta</a></p>
             </form>
         </div>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/login.js"></script>
 </body>
 </html>

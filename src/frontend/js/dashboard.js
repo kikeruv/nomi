@@ -1,4 +1,7 @@
-// Usa GET /usuarios/{id}, GET /menus/{id}/{semana} y GET /escaneos/{id}/ultimo
+// Usuario del token (sin sesión manda al login)
+const USUARIO_ID = pedirSesion();
+
+// Dashboard: usuario, menú de la semana y último escaneo
 
 function ponerBarra(idBarra, valor, meta) {
     const barra = document.getElementById(idBarra);
@@ -28,7 +31,7 @@ function pintarEscaneo(escaneo) {
 function pintarHoy(diaHoy, usuario) {
     const meta = usuario && usuario.meta_calorias ? Number(usuario.meta_calorias) : 0;
     const comidas = TIPOS_COMIDA.map((tipo) => diaHoy.comidas[tipo]).filter(Boolean);
-    const total = diaHoy.total_kcal ?? totalDelDia(diaHoy);
+    const total = diaHoy.total_kcal;
 
     // Calorías de hoy
     document.getElementById("calorias-hoy").textContent = formatoNumero(total);
@@ -81,9 +84,9 @@ async function cargarDashboard() {
 
     try {
         const [usuario, menu, escaneo] = await Promise.all([
-            obtenerUsuario(CONFIG.USUARIO_ID),
-            obtenerMenu(CONFIG.USUARIO_ID, semanaISO()),
-            obtenerUltimoEscaneo(CONFIG.USUARIO_ID)
+            obtenerUsuario(USUARIO_ID),
+            obtenerMenu(USUARIO_ID, semanaISO()),
+            obtenerUltimoEscaneo(USUARIO_ID)
         ]);
 
         pintarEncabezado(usuario);
@@ -97,7 +100,7 @@ async function cargarDashboard() {
 
         pintarSemana(menu);
 
-        // Día de hoy: por fecha; si no viene, por posición (lunes = 0)
+        // Busca el día de hoy en el menú
         const diaHoy = menu.dias.find((dia) => dia.fecha === fechaHoy()) || menu.dias[(new Date().getDay() + 6) % 7];
         if (diaHoy) pintarHoy(diaHoy, usuario);
     } catch (error) {

@@ -1,6 +1,8 @@
+// Usuario del token (sin sesión manda al login)
+const USUARIO_ID = pedirSesion();
 
-// Usa GET /usuarios/{id}, GET /escaneos/{id}/ultimo, GET /menus/{id}/{semana},
-//     GET /recetas?categoria= y PUT /menus/{id}/{semana}
+
+// Menú de la semana y cambio de platillos
 
 const SEMANA = semanaISO();
 
@@ -20,7 +22,7 @@ function pintarResumen(usuario) {
         document.getElementById("meta-diaria").textContent = formatoNumero(usuario.meta_calorias);
     }
 
-    const promedio = menu.dias.reduce((suma, dia) => suma + (dia.total_kcal ?? totalDelDia(dia)), 0) / menu.dias.length;
+    const promedio = menu.dias.reduce((suma, dia) => suma + dia.total_kcal, 0) / menu.dias.length;
     document.getElementById("promedio").textContent = formatoNumero(Math.round(promedio));
 
     const comidas = menu.dias.flatMap((dia) => TIPOS_COMIDA.map((tipo) => dia.comidas[tipo]).filter(Boolean));
@@ -52,27 +54,29 @@ async function recetasDe(tipo) {
     return recetasPorTipo[tipo];
 }
 
-function textoRefri(enRefri) {
-    if (enRefri.total > 0 && enRefri.tengo === enRefri.total) return "Usa tu refri";
-    if (enRefri.tengo * 2 >= enRefri.total && enRefri.tengo > 0) return "Casi todo en tu refri";
+// en_refri = ingredientes que tienes (lo calcula el backend)
+function textoRefri(receta) {
+    const tengo = (receta.en_refri || []).length;
+    const total = receta.ingredientes.length;
+    if (tengo === total) return "Usa tu refri";
+    if (tengo * 2 >= total) return "Casi todo en tu refri";
     return "Te faltan ingredientes";
 }
 
 function crearOpcion(receta) {
-    const enRefri = ingredientesEnRefri(receta, escaneo);
     const opcion = crear("div", "opcion");
     opcion.tabIndex = 0;
 
-    const nombres = (receta.ingredientes || []).slice(0, 3).map((ingrediente) => ingrediente.nombre).join(", ");
+    const nombres = receta.ingredientes.slice(0, 3).map((ingrediente) => ingrediente.nombre).join(", ");
     const datos = crear("div", "opcion-datos");
     datos.append(crear("span", "kcal", `${formatoNumero(receta.calorias)} kcal`), crear("span", "tiempo", `${receta.tiempo_min} min`));
 
-    opcion.append(crear("span", "etiqueta", textoRefri(enRefri)), crear("h3", "", receta.titulo), crear("p", "", nombres), datos);
+    opcion.append(crear("span", "etiqueta", textoRefri(receta)), crear("h3", "", receta.titulo), crear("p", "", nombres), datos);
 
     const elegir = () => {
         document.querySelectorAll(".opcion").forEach((otra) => otra.classList.remove("opcion-elegida"));
         opcion.classList.add("opcion-elegida");
-        opcionElegida = { receta: receta, usaRefri: enRefri.total > 0 && enRefri.tengo === enRefri.total };
+        opcionElegida = receta;
         botonConfirmar.disabled = false;
     };
     opcion.addEventListener("click", elegir);
@@ -107,9 +111,9 @@ async function abrirCambio(indiceDia, tipo, fila) {
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
+        // Ya vienen ordenadas del backend
         const recetas = (await recetasDe(tipo))
             .filter((receta) => receta.receta_id !== actual.receta_id)
-            .sort((a, b) => ingredientesEnRefri(b, escaneo).tengo - ingredientesEnRefri(a, escaneo).tengo)
             .slice(0, 3);
 
         opciones.innerHTML = "";
@@ -136,32 +140,15 @@ document.getElementById("boton-dejar").addEventListener("click", cerrarCambio);
 botonConfirmar.addEventListener("click", async () => {
     if (!cambio || !opcionElegida) return;
 
-    const receta = opcionElegida.receta;
-    const dias = structuredClone(menu.dias);
-    const dia = dias[cambio.indiceDia];
-
-    // Mismos campos que guarda la tabla Menus para cada comida
-    dia.comidas[cambio.tipo] = {
-        receta_id: receta.receta_id,
-        titulo: receta.titulo,
-        calorias: receta.calorias,
-        tiempo_min: receta.tiempo_min,
-        proteina_g: receta.proteina_g,
-        carbs_g: receta.carbs_g,
-        grasa_g: receta.grasa_g,
-        usa_refri: opcionElegida.usaRefri
-    };
-    dia.total_kcal = totalDelDia(dia);
-
     botonConfirmar.disabled = true;
     botonConfirmar.textContent = "Guardando…";
 
     try {
-        await actualizarMenu(CONFIG.USUARIO_ID, SEMANA, dias);
-        menu.dias = dias;
+        // El backend arma la comida nueva y recalcula el total
+        menu = await cambiarPlatillo(USUARIO_ID, SEMANA, cambio.indiceDia, cambio.tipo, opcionElegida.receta_id);
         cerrarCambio();
         pintarSemana(menu, abrirCambio);
-        pintarResumen(usuarioActual);
+        pintarResumen(perfilUsuario);
     } catch (error) {
         mostrarErrorPagina(`No pudimos cambiar el platillo. ${error.message}`);
         botonConfirmar.disabled = false;
@@ -172,16 +159,16 @@ botonConfirmar.addEventListener("click", async () => {
 
 // ---------- Cargar ----------
 
-let usuarioActual = null;
+let perfilUsuario = null;
 
 async function cargarMenu() {
     try {
         const [usuario, ultimoEscaneo, menuSemana] = await Promise.all([
-            obtenerUsuario(CONFIG.USUARIO_ID),
-            obtenerUltimoEscaneo(CONFIG.USUARIO_ID),
-            obtenerMenu(CONFIG.USUARIO_ID, SEMANA)
+            obtenerUsuario(USUARIO_ID),
+            obtenerUltimoEscaneo(USUARIO_ID),
+            obtenerMenu(USUARIO_ID, SEMANA)
         ]);
-        usuarioActual = usuario;
+        perfilUsuario = usuario;
         escaneo = ultimoEscaneo;
         menu = menuSemana;
         ponerAvatar(usuario);

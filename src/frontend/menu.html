@@ -29,7 +29,7 @@
         </div>
     </nav>
 
-    <!-- Todo lo que dice "—" lo llena js/menu.js con GET /menus/{usuario_id}/{semana} -->
+    <!-- Lo llena js/menu.js -->
     <main class="contenedor contenido-pagina">
 
         <div class="encabezado-pagina">
@@ -60,17 +60,16 @@
             </div>
         </div>
 
-        <!-- Un .dia por cada día; cada .comida-dia lleva su .boton-cambiar -->
         <div class="semana" id="semana" style="margin-top: var(--espacio-lateral)"></div>
 
-        <!-- Se muestra si todavía no hay menú esta semana -->
+        <!-- Si no hay menú -->
         <div class="tarjeta" id="sin-menu" hidden style="margin-top: var(--espacio-lateral)">
             <h3>Todavía no tienes menú esta semana</h3>
             <p>Escanea tu refri y armamos tus 7 días.</p>
             <a class="boton boton-principal boton-chico" href="escanear_refri.html" style="margin-top: var(--espacio-medio)">Escanear refri</a>
         </div>
 
-        <!-- Cambiar un platillo: se abre al tocar el botón de cambiar -->
+        <!-- Cambiar platillo -->
         <section class="panel-cambio" id="panel-cambio" hidden>
             <div class="encabezado-pagina">
                 <div>
@@ -83,7 +82,6 @@
             </div>
             <p style="margin: 8px 0 0; color: var(--color-texto-suave); font-size: 14px">Elige otra opción. Primero te mostramos las que se hacen con lo que ya tienes en tu refri.</p>
 
-            <!-- Una .opcion por receta; la elegida lleva .opcion-elegida -->
             <div class="opciones-cambio" id="opciones"></div>
 
             <div class="grupo-botones" style="margin-top: var(--espacio-medio)">

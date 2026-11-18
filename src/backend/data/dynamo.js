@@ -1,3 +1,4 @@
+// Cliente de DynamoDB que usan todos los archivos de data
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
 

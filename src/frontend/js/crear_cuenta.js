@@ -1,91 +1,83 @@
+// Crear cuenta: 1) Cognito manda un código al correo  2) se confirma y se guarda el perfil
+
 const formulario = document.getElementById("formulario-registro");
+const formularioCodigo = document.getElementById("formulario-codigo");
 const resultado = document.getElementById("resultado");
+const resultadoCodigo = document.getElementById("resultado-codigo");
 
-function mostrarError(idCampo, mensaje) {
-    const campo = document.getElementById(idCampo);
-    campo.classList.add("campo-error");
-    campo.querySelector("small").textContent = mensaje;
+function mostrarMensaje(caja, mensaje) {
+    caja.className = "mensaje mensaje-error";
+    caja.textContent = mensaje;
+    caja.hidden = false;
 }
 
-function quitarError(idCampo) {
-    const campo = document.getElementById(idCampo);
-    campo.classList.remove("campo-error");
-    campo.querySelector("small").textContent = "";
+// Mismos nombres que la tabla Usuarios
+function leerPerfil() {
+    const perfil = {
+        usuario_id: usuarioActual(),
+        nombre: document.getElementById("nombre").value.trim(),
+        correo: document.getElementById("correo").value.trim(),
+        personas: Number(document.getElementById("personas").value),
+        comidas_por_dia: 3,
+        preferencias: [],
+        tema: leerPreferenciaTema()
+    };
+    const meta = document.getElementById("meta").value.trim();
+    if (meta !== "") perfil.meta_calorias = Number(meta);
+    return perfil;
 }
 
+// Guarda el perfil; si el backend lo rechaza, regresa al formulario para corregirlo
+async function guardarPerfil() {
+    try {
+        await crearUsuario(leerPerfil());
+        window.location.href = "dashboard.html";
+    } catch (error) {
+        formularioCodigo.hidden = true;
+        formulario.hidden = false;
+        document.getElementById("correo").disabled = true;
+        document.getElementById("contrasena").disabled = true;
+        formulario.querySelector("button").textContent = "Guardar y entrar";
+        mostrarMensaje(resultado, error.message);
+    }
+}
+
+// Paso 1
 formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     resultado.hidden = true;
 
-    const nombre = document.getElementById("nombre").value.trim();
-    const correo = document.getElementById("correo").value.trim();
-    const contrasena = document.getElementById("contrasena").value;
-    const personas = Number(document.getElementById("personas").value);
-    const textoMeta = document.getElementById("meta").value.trim();
-    const meta = Number(textoMeta);
-
-    let valido = true;
-
-    if (!nombre) {
-        mostrarError("campo-nombre", "Escribe tu nombre.");
-        valido = false;
+    // Ya confirmó la cuenta: solo falta el perfil
+    if (usuarioActual()) {
+        await guardarPerfil();
+        return;
     }
-
-    if (!correo) {
-        mostrarError("campo-correo", "Escribe tu correo.");
-        valido = false;
-    } else if (!correo.includes("@")) {
-        mostrarError("campo-correo", "Revisa tu correo, le falta la @.");
-        valido = false;
-    }
-
-    if (contrasena.length < 8) {
-        mostrarError("campo-contrasena", "Usa al menos 8 caracteres.");
-        valido = false;
-    }
-
-    if (!Number.isInteger(personas) || personas < 1) {
-        mostrarError("campo-personas", "Escribe al menos 1.");
-        valido = false;
-    }
-
-    // La meta es opcional: vacía está bien
-    if (textoMeta !== "" && (!Number.isInteger(meta) || meta < 1)) {
-        mostrarError("campo-meta", "Escribe un número mayor a 0.");
-        valido = false;
-    }
-
-    if (!valido) return;
-
-    // Los nombres son los mismos de la tabla Usuarios
-    const usuario = {
-        usuario_id: CONFIG.USUARIO_ID,
-        nombre: nombre,
-        correo: correo,
-        personas: personas,
-        comidas_por_dia: 3,
-        meta_calorias: textoMeta === "" ? null : meta,
-        preferencias: [],
-        tema: leerPreferenciaTema()
-    };
-
-    const boton = formulario.querySelector('button[type="submit"]');
-    boton.disabled = true;
-    boton.textContent = "Creando…";
 
     try {
-        await crearUsuario(usuario);
-        window.location.href = "dashboard.html";
+        await registrarse(document.getElementById("correo").value.trim(), document.getElementById("contrasena").value);
+        document.getElementById("texto-codigo").textContent = `Te mandamos un código a ${document.getElementById("correo").value.trim()}.`;
+        formulario.hidden = true;
+        formularioCodigo.hidden = false;
     } catch (error) {
-        resultado.className = "mensaje mensaje-error";
-        resultado.textContent = `No pudimos crear tu cuenta. ${error.message}`;
-        resultado.hidden = false;
-        boton.disabled = false;
-        boton.textContent = "Crear cuenta";
+        mostrarMensaje(resultado, error.message);
     }
 });
 
-// Quita el error en cuanto la persona corrige el campo
-["nombre", "correo", "contrasena", "personas", "meta"].forEach((id) => {
-    document.getElementById(id).addEventListener("input", () => quitarError("campo-" + id));
+// Paso 2
+formularioCodigo.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    resultadoCodigo.hidden = true;
+
+    const correo = document.getElementById("correo").value.trim();
+    const contrasena = document.getElementById("contrasena").value;
+
+    try {
+        await confirmarCuenta(correo, document.getElementById("codigo").value.trim());
+        await iniciarSesion(correo, contrasena);
+    } catch (error) {
+        mostrarMensaje(resultadoCodigo, error.message);
+        return;
+    }
+
+    await guardarPerfil();
 });

@@ -1,6 +1,6 @@
+// Configuración de la página (URLs y Client ID de Cognito, no son secretos)
 const CONFIG = {
-    API_URL: "http://32.198.178.239:3001",
-    USUARIO_ID: "u1",
-    // API Gateway + Lambda de Alan: da la URL firmada para subir la foto del refri a S3
-    API_REFRI_URL: "https://lnkiuphyxj.execute-api.us-east-1.amazonaws.com/dev/photos"
+    "API_URL": "https://zj991lzgv6.execute-api.us-east-1.amazonaws.com/dev",
+    "COGNITO_URL": "https://cognito-idp.us-east-1.amazonaws.com/",
+    "COGNITO_CLIENT_ID": "aj1fc9ec93lkp8cb3agaq5152"
 };
