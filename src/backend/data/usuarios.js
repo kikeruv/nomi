@@ -7,7 +7,7 @@ async function obtener(usuarioId) {
     const resultado = await dynamo.send(new GetCommand({
         TableName: TABLA,
         Key: { usuario_id: usuarioId }
-    })); 
+    }));
     return resultado.Item;
 }
 

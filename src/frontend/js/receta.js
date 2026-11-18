@@ -1,4 +1,7 @@
-// Detalle de una receta: lee ?receta_id= de la URL y usa GET /recetas/{receta_id}
+// Usuario del token (sin sesión manda al login)
+const USUARIO_ID = pedirSesion();
+
+// Detalle de una receta
 
 const NOMBRE_CATEGORIA = { desayuno: "Desayuno", comida: "Comida", cena: "Cena" };
 
@@ -7,7 +10,7 @@ function mostrarNoEncontrada() {
     document.getElementById("no-encontrada").hidden = false;
 }
 
-function pintarReceta(receta, escaneo) {
+function pintarReceta(receta) {
     document.title = `${receta.titulo} · Nomi`;
 
     document.getElementById("categoria").textContent = NOMBRE_CATEGORIA[receta.categoria] || receta.categoria;
@@ -17,7 +20,7 @@ function pintarReceta(receta, escaneo) {
     document.getElementById("tiempo").innerHTML = `${Number(receta.tiempo_min)}<small> min</small>`;
     document.getElementById("porciones").textContent = receta.porciones;
 
-    // Foto de S3 (URL firmada)
+    // Foto
     if (receta.imagen_url) {
         const contenedorImagen = document.getElementById("imagen");
         const img = crear("img");
@@ -34,23 +37,23 @@ function pintarReceta(receta, escaneo) {
         if (receta[campo] !== undefined) macros.appendChild(crear("span", "chip", `${receta[campo]} g ${nombre}`));
     });
 
-    // Cuántos ingredientes tienes en el refri
-    const enRefri = ingredientesEnRefri(receta, escaneo);
-    if (escaneo) {
-        document.getElementById("del-refri").innerHTML = `${enRefri.tengo}<small> de ${enRefri.total}</small>`;
-        if (enRefri.total > 0 && enRefri.tengo === enRefri.total) {
+    // en_refri lo calcula el backend (null si no has escaneado)
+    const enRefri = receta.en_refri || [];
+    if (receta.en_refri) {
+        document.getElementById("del-refri").innerHTML = `${enRefri.length}<small> de ${receta.ingredientes.length}</small>`;
+        if (enRefri.length === receta.ingredientes.length) {
             document.getElementById("chips").appendChild(crear("span", "chip", "Usa tu refri"));
         }
     }
 
-    // Pasos: un <li> por paso (la numeración 01, 02… la pone el CSS)
+    // Pasos
     const listaPasos = document.getElementById("pasos");
     (receta.pasos || []).forEach((paso) => listaPasos.appendChild(crear("li", "", paso)));
 
-    // Ingredientes: nombre (con ✓ si está en tu refri) y cantidad
+    // Ingredientes (✓ si lo tienes)
     const listaIngredientes = document.getElementById("ingredientes");
     (receta.ingredientes || []).forEach((ingrediente) => {
-        const tengo = enRefri.nombres.includes(ingrediente.nombre);
+        const tengo = enRefri.includes(ingrediente.nombre);
         const li = crear("li");
         li.append(crear("span", "", tengo ? `✓ ${ingrediente.nombre}` : ingrediente.nombre), crear("span", "", ingrediente.cantidad || ""));
         listaIngredientes.appendChild(li);
@@ -65,10 +68,9 @@ async function cargarReceta() {
     }
 
     try {
-        const [receta, escaneo, usuario] = await Promise.all([
+        const [receta, usuario] = await Promise.all([
             obtenerReceta(recetaId),
-            obtenerUltimoEscaneo(CONFIG.USUARIO_ID).catch(() => null),
-            obtenerUsuario(CONFIG.USUARIO_ID).catch(() => null)
+            obtenerUsuario(USUARIO_ID)
         ]);
         ponerAvatar(usuario);
 
@@ -76,7 +78,7 @@ async function cargarReceta() {
             mostrarNoEncontrada();
             return;
         }
-        pintarReceta(receta, escaneo);
+        pintarReceta(receta);
     } catch (error) {
         mostrarNoEncontrada();
         document.querySelector("#no-encontrada p").textContent = `No pudimos cargar la receta. ${error.message}`;

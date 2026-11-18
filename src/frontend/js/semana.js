@@ -1,4 +1,4 @@
-// Pinta los 7 días del menú (lo usan dashboard.html y menu.html)
+// Pinta los 7 días del menú (dashboard y menú)
 
 const TIPOS_COMIDA = ["desayuno", "comida", "cena"];
 const NOMBRE_COMIDA = { desayuno: "Desayuno", comida: "Comida", cena: "Cena" };
@@ -11,12 +11,7 @@ function diaCorto(fecha) {
     return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-// Suma de kcal de las comidas de un día
-function totalDelDia(dia) {
-    return TIPOS_COMIDA.reduce((suma, tipo) => suma + (dia.comidas[tipo] ? Number(dia.comidas[tipo].calorias) || 0 : 0), 0);
-}
-
-// Crea un .dia; si alCambiar existe, cada comida lleva su botón para cambiarla
+// Un día de la semana (con botón de cambiar si se pasa alCambiar)
 function crearDia(dia, indiceDia, alCambiar) {
     const esHoy = dia.fecha === fechaHoy();
     const caja = crear("div", esHoy ? "dia dia-hoy" : "dia");
@@ -50,7 +45,7 @@ function crearDia(dia, indiceDia, alCambiar) {
     });
 
     const total = crear("div", "total-dia", "Total ");
-    total.appendChild(crear("b", "", `${formatoNumero(dia.total_kcal ?? totalDelDia(dia))} kcal`));
+    total.appendChild(crear("b", "", `${formatoNumero(dia.total_kcal)} kcal`));
     caja.appendChild(total);
 
     return caja;

@@ -2,7 +2,7 @@ function leerPreferenciaTema() {
     try {
         return localStorage.getItem("nomi-tema") || "auto";
     } catch (error) {
-        return "auto";   // El navegador no deja guardar: usamos automático
+        return "auto";
     }
 }
 
@@ -10,11 +10,10 @@ function guardarPreferenciaTema(preferencia) {
     try {
         localStorage.setItem("nomi-tema", preferencia);
     } catch (error) {
-        // Sin almacenamiento: el tema cambia, pero no se recuerda
     }
 }
 
-// Convierte "auto" en "dark" o "light" según el sistema
+// "auto" -> "dark" o "light" según el sistema
 function temaReal(preferencia) {
     if (preferencia === "auto") {
         return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
@@ -26,21 +25,21 @@ function aplicarTema(preferencia) {
     document.documentElement.dataset.theme = temaReal(preferencia);
 }
 
-// Se usa desde Perfil (Automático / Oscuro / Claro)
+// Lo usa Perfil
 function elegirTema(preferencia) {
     guardarPreferenciaTema(preferencia);
     aplicarTema(preferencia);
 }
 
-// 1. Aplicar el tema guardado en cuanto carga el script
+// Aplica el tema al cargar
 aplicarTema(leerPreferenciaTema());
 
-// 2. Si está en automático y el sistema cambia de tema, seguirlo
+// En automático sigue al sistema
 window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
     if (leerPreferenciaTema() === "auto") aplicarTema("auto");
 });
 
-// 3. Botón de sol y luna: alterna entre oscuro y claro
+// Botón de sol y luna
 document.addEventListener("DOMContentLoaded", () => {
     const boton = document.getElementById("boton-tema");
     if (!boton) return;

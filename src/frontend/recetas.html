@@ -39,7 +39,7 @@
             <input class="entrada" id="buscador" type="search" placeholder="Buscar receta o ingrediente" style="max-width: 320px">
         </div>
 
-        <!-- Filtros: data-categoria es la categoría de la tabla Recetario -->
+        <!-- Filtros por categoría -->
         <div class="encabezado-pagina" style="margin-top: var(--espacio-tarjeta); align-items: center">
             <div class="filtros">
                 <button class="filtro" type="button" data-categoria="todas" aria-pressed="true">Todas</button>
@@ -50,7 +50,6 @@
             <a class="enlace" href="#" id="solo-caben">Menos de 500 kcal →</a>
         </div>
 
-        <!-- Una .tarjeta por receta; las pinta js/recetas.js -->
         <div class="cuadricula-4" id="lista-recetas" style="margin-top: var(--espacio-tarjeta)"></div>
 
         <div class="mensaje mensaje-error" id="error" hidden></div>

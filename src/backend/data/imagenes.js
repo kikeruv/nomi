@@ -3,6 +3,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
+// URL temporal (1 hora) para ver una foto del bucket privado
 async function urlFirmada(llave) {
     if (!llave || !process.env.BUCKET_IMAGENES) return "";
 

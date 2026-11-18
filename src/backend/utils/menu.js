@@ -1,16 +1,16 @@
-// Fechas y armado del menú de la semana
+// Fechas y menú de la semana
 
 // "2026-11-05"
 function fecha(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// "2026-11-05T13:45:00" (la SK de escaneos)
+// "2026-11-05T13:45:00" (SK de escaneos)
 function fechaHora(d) {
     return `${fecha(d)}T${d.toTimeString().slice(0, 8)}`;
 }
 
-// "2026-W45" (la SK de menus; igual que en la página)
+// "2026-W45" (SK de menus); la semana es la de su jueves
 function semanaISO(d) {
     const jueves = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     jueves.setUTCDate(jueves.getUTCDate() + 4 - (jueves.getUTCDay() || 7));
@@ -24,36 +24,55 @@ function normalizar(texto) {
     return String(texto).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-// Cuántos ingredientes de la receta hay en el refri
-function enRefri(receta, ingredientesRefri) {
+// Ingredientes de la receta que sí hay en el refri
+function ingredientesQueTienes(receta, ingredientesRefri) {
     const delRefri = ingredientesRefri.map((ingrediente) => normalizar(ingrediente.nombre));
-    return receta.ingredientes.filter((ingrediente) =>
-        delRefri.some((nombre) => normalizar(ingrediente.nombre).includes(nombre))
-    ).length;
+    return receta.ingredientes
+        .map((ingrediente) => ingrediente.nombre)
+        .filter((nombre) => delRefri.some((otro) => normalizar(nombre).includes(otro) || otro.includes(normalizar(nombre))));
 }
 
-// 1 comida = solo comida, 2 = comida y cena, 3 = las tres
+// Una comida del menú (copia los datos de la receta)
+function comidaDe(receta, ingredientesRefri) {
+    return {
+        receta_id: receta.receta_id,
+        titulo: receta.titulo,
+        calorias: receta.calorias,
+        tiempo_min: receta.tiempo_min,
+        proteina_g: receta.proteina_g,
+        carbs_g: receta.carbs_g,
+        grasa_g: receta.grasa_g,
+        usa_refri: ingredientesQueTienes(receta, ingredientesRefri).length === receta.ingredientes.length
+    };
+}
+
+// Suma las calorías de las comidas de un día
+function totalKcal(comidas) {
+    return Object.values(comidas).reduce((suma, comida) => suma + comida.calorias, 0);
+}
+
+// Qué comidas lleva cada día según comidas_por_dia
 const TIPOS = { 1: ["comida"], 2: ["comida", "cena"], 3: ["desayuno", "comida", "cena"] };
 const NOMBRES_DIA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
 
-// Arma 7 días: primero las recetas que más usan el refri y que caben en el tiempo máximo
+// Arma los 7 días con las recetas que más usan tu refri
 function generarMenu(usuario, escaneo, recetas) {
     const tipos = TIPOS[escaneo.comidas_por_dia];
     const tiempoMaximo = usuario.tiempo_max_min || 999;
 
-    // Recetas de cada tipo, ordenadas de la que más usa el refri a la que menos
+    // Por tipo: primero las rápidas y las que más ingredientes tienes
     const opciones = {};
     tipos.forEach((tipo) => {
         let lista = recetas.filter((receta) => receta.categoria === tipo);
         const rapidas = lista.filter((receta) => receta.tiempo_min <= tiempoMaximo);
         if (rapidas.length > 0) lista = rapidas;
 
-        opciones[tipo] = lista.sort((a, b) =>
-            enRefri(b, escaneo.ingredientes) / b.ingredientes.length -
-            enRefri(a, escaneo.ingredientes) / a.ingredientes.length
-        );
+        // Porcentaje de la receta que ya tienes
+        const porcentaje = (receta) => ingredientesQueTienes(receta, escaneo.ingredientes).length / receta.ingredientes.length;
+        opciones[tipo] = lista.sort((a, b) => porcentaje(b) - porcentaje(a));
     });
 
+    // Lunes de esta semana
     const hoy = new Date();
     const lunes = new Date(hoy);
     lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
@@ -63,30 +82,16 @@ function generarMenu(usuario, escaneo, recetas) {
         dia.setDate(lunes.getDate() + i);
 
         const comidas = {};
-        let total = 0;
-
         tipos.forEach((tipo) => {
             if (opciones[tipo].length === 0) return;
-
-            // Va rotando para no repetir el mismo platillo toda la semana
-            const receta = opciones[tipo][i % opciones[tipo].length];
-            comidas[tipo] = {
-                receta_id: receta.receta_id,
-                titulo: receta.titulo,
-                calorias: receta.calorias,
-                tiempo_min: receta.tiempo_min,
-                proteina_g: receta.proteina_g,
-                carbs_g: receta.carbs_g,
-                grasa_g: receta.grasa_g,
-                usa_refri: enRefri(receta, escaneo.ingredientes) === receta.ingredientes.length
-            };
-            total += receta.calorias;
+            // Rota las recetas para no repetir toda la semana
+            comidas[tipo] = comidaDe(opciones[tipo][i % opciones[tipo].length], escaneo.ingredientes);
         });
 
-        return { dia: nombre, fecha: fecha(dia), total_kcal: total, comidas: comidas };
+        return { dia: nombre, fecha: fecha(dia), total_kcal: totalKcal(comidas), comidas: comidas };
     });
 
     return { usuario_id: usuario.usuario_id, semana: semanaISO(hoy), dias: dias };
 }
 
-module.exports = { fechaHora, generarMenu };
+module.exports = { fechaHora, generarMenu, comidaDe, totalKcal, ingredientesQueTienes };

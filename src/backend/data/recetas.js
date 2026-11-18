@@ -16,7 +16,7 @@ async function obtenerTodas() {
     return resultado.Items;
 }
 
-// Usa el GSI de categoria (query en lugar de scan)
+// Usa el índice de categoría (query en vez de scan)
 async function obtenerPorCategoria(categoria) {
     const resultado = await dynamo.send(new QueryCommand({
         TableName: TABLA,
