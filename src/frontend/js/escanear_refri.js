@@ -26,6 +26,21 @@ async function subirFoto(foto) {
         body: foto
     });
     if (!respuesta.ok) throw new Error("S3 no aceptó la foto.");
+    return firma.clave;
+}
+
+// Revisa cada 2 segundos si Rekognition ya terminó con esa foto (máximo 30 segundos)
+async function esperarIngredientes(clave) {
+    // El nombre de la foto es su fecha en milisegundos
+    const fecha = Number(clave.split("/").pop().replace(".jpg", ""));
+
+    for (let intento = 0; intento < 15; intento++) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const fotos = (await obtenerFotos()).fotos;
+        const foto = fotos.find((foto) => foto.fecha === fecha);
+        if (foto && foto.ingredientes !== null) return foto.ingredientes;
+    }
+    return null;
 }
 
 document.getElementById("foto").addEventListener("change", async (evento) => {
@@ -40,9 +55,20 @@ document.getElementById("foto").addEventListener("change", async (evento) => {
 
     mostrarMensaje("info", "Subiendo la foto…");
     try {
-        await subirFoto(foto);
-        mostrarMensaje("exito", "Foto subida. Rekognition está buscando los ingredientes…");
-        setTimeout(cargarHistorial, 5000);
+        const clave = await subirFoto(foto);
+        mostrarMensaje("info", "Foto subida. Rekognition está buscando los ingredientes…");
+
+        // En cuanto los detecta, se pasan a la lista
+        const detectados = await esperarIngredientes(clave);
+        cargarHistorial();
+        if (detectados === null) {
+            mostrarMensaje("error", "Rekognition tardó demasiado. Revisa tu historial en un momento.");
+        } else if (detectados.length === 0) {
+            mostrarMensaje("info", "No encontramos ingredientes en la foto. Agrégalos a mano.");
+        } else {
+            usarIngredientes(detectados);
+            mostrarMensaje("exito", `Encontramos ${detectados.length} ingredientes. Quita los que no tengas.`);
+        }
     } catch (error) {
         mostrarMensaje("error", `No pudimos subir la foto. ${error.message}`);
     }
